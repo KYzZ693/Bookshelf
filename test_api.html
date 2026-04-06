@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test API</title>
+  <meta charset="UTF-8">
+</head>
+<body>
+  <h1>API Test</h1>
+  <button onclick="testAPI()">Test /books API</button>
+  <button onclick="testScrape()">Test /scrape API</button>
+  <pre id="output"></pre>
+
+  <script>
+    const API_BASE = 'http://localhost:5000';
+
+    async function testAPI() {
+      const output = document.getElementById('output');
+      output.textContent = 'Loading...';
+      try {
+        const res = await fetch(`${API_BASE}/books`);
+        const data = await res.json();
+        output.textContent = `Status: ${res.status}\nBooks: ${data.books?.length || 0}\nOwned: ${Object.keys(data.owned || {}).length}\n\nFirst 5 books:\n` + 
+          JSON.stringify(data.books?.slice(0, 5), null, 2);
+      } catch(e) {
+        output.textContent = 'Error: ' + e.message;
+      }
+    }
+
+    async function testScrape() {
+      const output = document.getElementById('output');
+      output.textContent = 'Starting scrape...';
+      try {
+        const res = await fetch(`${API_BASE}/scrape`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ publishers: ['PhoenixNext'] })
+        });
+        const data = await res.json();
+        output.textContent = `Status: ${res.status}\nScraped: ${data.scraped}\nTotal: ${data.total}\nPublishers: ${data.publishers}`;
+      } catch(e) {
+        output.textContent = 'Error: ' + e.message;
+      }
+    }
+  </script>
+</body>
+</html>
