@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Settings — BookShelf</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #F7F5F0; --surface: #FFFFFF; --surface2: #F0EDE6;
+    --border: #E2DDD5; --text: #1A1814; --text-muted: #7A7368;
+    --text-faint: #B5AFA5; --accent: #2D6A4F; --accent-light: #D8EFE3;
+    --radius: 12px; --radius-sm: 8px;
+    --shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.04);
+  }
+  body { font-family: 'Noto Sans Thai', sans-serif; background: var(--bg); color: var(--text); }
+  nav {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 0 2rem; display: flex; align-items: center; height: 58px; gap: 1rem;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo { font-family: 'DM Serif Display', serif; font-size: 20px; text-decoration: none; color: var(--text); }
+  .logo span { color: var(--accent); }
+  .back-btn {
+    display: flex; align-items: center; gap: 6px; text-decoration: none;
+    color: var(--text-muted); font-size: 13.5px; margin-left: auto;
+    padding: 6px 12px; border-radius: 50px; border: 1px solid var(--border);
+    background: var(--surface); transition: all .15s;
+  }
+  .back-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .page-wrap { max-width: 700px; margin: 2rem auto; padding: 0 1.5rem 4rem; }
+  h1 { font-family: 'DM Serif Display', serif; font-size: 26px; margin-bottom: .5rem; }
+  .subtitle { font-size: 13.5px; color: var(--text-muted); margin-bottom: 2rem; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.25rem;
+    box-shadow: var(--shadow);
+  }
+  .card-title { font-size: 14px; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; }
+  .card-title span { font-size: 16px; }
+  label { display: block; font-size: 12.5px; color: var(--text-muted); margin-bottom: 5px; font-weight: 500; }
+  input[type=text], input[type=url] {
+    width: 100%; padding: 9px 12px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); background: var(--surface2);
+    font-size: 13.5px; font-family: inherit; color: var(--text);
+    outline: none; transition: border-color .2s;
+  }
+  input:focus { border-color: var(--accent); background: var(--surface); }
+  .field { margin-bottom: 1rem; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .btn-primary {
+    padding: 9px 20px; border-radius: var(--radius-sm);
+    border: none; background: var(--accent); color: #fff;
+    font-size: 13.5px; font-weight: 600; font-family: inherit;
+    cursor: pointer; transition: background .15s;
+  }
+  .btn-primary:hover { background: #1e5237; }
+  .btn-danger {
+    padding: 9px 20px; border-radius: var(--radius-sm);
+    border: 1px solid #e2bcbc; background: #fdf0f0; color: #a33232;
+    font-size: 13.5px; font-weight: 500; font-family: inherit;
+    cursor: pointer; transition: all .15s;
+  }
+  .btn-danger:hover { background: #f7dede; }
+  .pub-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 1rem; }
+  .pub-row {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface2); border-radius: var(--radius-sm);
+    padding: 10px 14px; font-size: 13.5px;
+  }
+  .pub-name { flex: 1; font-weight: 500; }
+  .pub-url { font-size: 12px; color: var(--text-muted); }
+  .pub-del {
+    width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border);
+    background: var(--surface); cursor: pointer; font-size: 14px; color: var(--text-muted);
+    display: flex; align-items: center; justify-content: center; transition: all .15s;
+  }
+  .pub-del:hover { border-color: #e2bcbc; color: #a33232; background: #fdf0f0; }
+  .toast-row { display: flex; gap: 8px; margin-top: 1rem; }
+  .info-box {
+    background: var(--accent-light); border: 1px solid #a8d5be;
+    border-radius: var(--radius-sm); padding: 12px 14px;
+    font-size: 13px; color: #1e5237; margin-bottom: 1rem; line-height: 1.6;
+  }
+  code {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 4px; padding: 2px 6px; font-size: 12px; font-family: monospace;
+  }
+</style>
+</head>
+<body>
+<nav>
+  <a href="Booksheilf.html" class="logo">Book<span>Shelf</span></a>
+  <a href="Booksheilf.html" class="back-btn">← กลับหน้าหลัก</a>
+</nav>
+
+<div class="page-wrap">
+  <h1>Settings</h1>
+  <p class="subtitle">จัดการสำนักพิมพ์ และตั้งค่าระบบ</p>
+
+  <!-- PUBLISHERS -->
+  <div class="card">
+    <div class="card-title"><span>🏢</span> สำนักพิมพ์</div>
+
+    <div class="pub-list" id="pubList"></div>
+
+    <details style="margin-bottom:1rem">
+      <summary style="cursor:pointer;font-size:13.5px;font-weight:500;color:var(--accent);margin-bottom:.75rem">+ เพิ่มสำนักพิมพ์ใหม่</summary>
+      <div style="margin-top:.75rem">
+        <div class="field">
+          <label>ชื่อสำนักพิมพ์</label>
+          <input type="text" id="newPubName" placeholder="เช่น MamMagazine">
+        </div>
+        <div class="field">
+          <label>Base URL</label>
+          <input type="url" id="newPubBase" placeholder="https://www.example.com">
+        </div>
+        <div class="grid2">
+          <div class="field">
+            <label>Path หน้า Light Novel</label>
+            <input type="text" id="newPubLn" placeholder="/light-novel.html">
+          </div>
+          <div class="field">
+            <label>Path หน้า Manga</label>
+            <input type="text" id="newPubManga" placeholder="/manga.html">
+          </div>
+        </div>
+        <button class="btn-primary" onclick="addPublisher()">เพิ่มสำนักพิมพ์</button>
+      </div>
+    </details>
+  </div>
+
+  <!-- SCRAPER SETUP -->
+  <div class="card">
+    <div class="card-title"><span>🔧</span> วิธีรัน Backend</div>
+    <div class="info-box">
+      ต้องรัน <code>scraper.py</code> ก่อนเพื่อให้เว็บดึงข้อมูลได้จริง<br><br>
+      <strong>1. ติดตั้ง dependencies:</strong><br>
+      <code>pip install flask flask-cors requests beautifulsoup4 pandas openpyxl</code><br><br>
+      <strong>2. รัน:</strong><br>
+      <code>python scraper.py</code><br><br>
+      <strong>3. เปิดเว็บ</strong> <code>index.html</code> แล้วกด Scrape Now<br><br>
+      ถ้าไม่รัน backend เว็บจะแสดงข้อมูลตัวอย่าง (Demo mode) แทน
+    </div>
+  </div>
+
+  <!-- DATA MANAGEMENT -->
+  <div class="card">
+    <div class="card-title"><span>💾</span> จัดการข้อมูล</div>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:1rem">
+      ข้อมูลถูกเก็บใน localStorage ของ Browser และไฟล์ <code>db.json</code>
+    </p>
+    <div class="toast-row">
+      <button class="btn-primary" onclick="exportData()">Export JSON Backup</button>
+      <button class="btn-primary" onclick="document.getElementById('importFile').click()" style="background:var(--surface);color:var(--text);border:1px solid var(--border)">Import JSON</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+      <button class="btn-danger" onclick="if(confirm('ลบข้อมูลทั้งหมด?'))clearData()">ล้างข้อมูล</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DB_KEY  = 'bookshelf_v1';
+const OWN_KEY = 'bookshelf_owned';
+const PUB_KEY = 'bookshelf_pubs';
+
+const DEFAULT_PUBS = {
+  "PhoenixNext": { base: "https://www.phoenixnext.com", ln: "/light-novel.html", manga: "/manga.html" }
+};
+
+function loadPubs() {
+  try { return JSON.parse(localStorage.getItem(PUB_KEY)) || DEFAULT_PUBS; }
+  catch { return DEFAULT_PUBS; }
+}
+
+function savePubs(pubs) { localStorage.setItem(PUB_KEY, JSON.stringify(pubs)); }
+
+function renderPubs() {
+  const pubs = loadPubs();
+  const list = document.getElementById('pubList');
+  list.innerHTML = Object.entries(pubs).map(([name, cfg]) => `
+    <div class="pub-row">
+      <div>
+        <div class="pub-name">${name}</div>
+        <div class="pub-url">${cfg.base}</div>
+      </div>
+      <button class="pub-del" onclick="deletePub('${name}')" title="ลบ">✕</button>
+    </div>
+  `).join('');
+}
+
+function addPublisher() {
+  const name  = document.getElementById('newPubName').value.trim();
+  const base  = document.getElementById('newPubBase').value.trim();
+  const ln    = document.getElementById('newPubLn').value.trim() || '/light-novel.html';
+  const manga = document.getElementById('newPubManga').value.trim() || '/manga.html';
+  if (!name || !base) { alert('กรุณากรอกชื่อและ URL'); return; }
+  const pubs = loadPubs();
+  pubs[name] = { base, ln, manga };
+  savePubs(pubs);
+  renderPubs();
+  ['newPubName','newPubBase','newPubLn','newPubManga'].forEach(id => document.getElementById(id).value = '');
+}
+
+function deletePub(name) {
+  if (!confirm(`ลบ "${name}"?`)) return;
+  const pubs = loadPubs();
+  delete pubs[name];
+  savePubs(pubs);
+  renderPubs();
+}
+
+function exportData() {
+  const data = {
+    books: JSON.parse(localStorage.getItem(DB_KEY) || '[]'),
+    owned: JSON.parse(localStorage.getItem(OWN_KEY) || '{}'),
+    publishers: loadPubs(),
+    exported: new Date().toISOString()
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `bookshelf_backup_${Date.now()}.json`; a.click();
+}
+
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (data.books) localStorage.setItem(DB_KEY, JSON.stringify(data.books));
+      if (data.owned) localStorage.setItem(OWN_KEY, JSON.stringify(data.owned));
+      if (data.publishers) savePubs(data.publishers);
+      alert('Import สำเร็จ!');
+      renderPubs();
+    } catch { alert('ไฟล์ไม่ถูกต้อง'); }
+  };
+  reader.readAsText(file);
+}
+
+function clearData() {
+  localStorage.removeItem(DB_KEY);
+  localStorage.removeItem(OWN_KEY);
+  alert('ล้างข้อมูลแล้ว');
+}
+
+renderPubs();
+</script>
+</body>
+</html>
