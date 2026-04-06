@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Book Shelf</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #F7F5F0;
+  --surface: #FFFFFF;
+  --surface2: #F0EDE6;
+  --border: #E2DDD5;
+  --text: #1A1814;
+  --text-muted: #7A7368;
+  --text-faint: #B5AFA5;
+  --accent: #2D6A4F;
+  --accent-light: #D8EFE3;
+  --accent2: #5C4B8A;
+  --accent2-light: #EAE5F5;
+    --owned: #2D6A4F;
+    --tag-ln: #2D6A4F;
+    --tag-ln-bg: #D8EFE3;
+    --tag-manga: #5C4B8A;
+    --tag-manga-bg: #EAE5F5;
+    --tag-novel: #8B5A3C;
+    --tag-novel-bg: #F5E6D8;
+    --tag-manga: #5C4B8A;
+    --tag-manga-bg: #EAE5F5;
+    --tag-artbook: #B8860B;
+    --tag-artbook-bg: #FFF8DC;
+    --tag-want: #FFD700;
+    --tag-want-bg: #FFFACD;
+    --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.04);
+  --shadow-hover: 0 4px 16px rgba(0,0,0,.12), 0 12px 32px rgba(0,0,0,.08);
+}
+
+body { font-family: 'Noto Sans Thai', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* ── NAVBAR ── */
+nav {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  display: flex; align-items: center; height: 58px; gap: 1.5rem;
+  position: sticky; top: 0; z-index: 100;
+}
+.logo { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--text); text-decoration: none; flex-shrink: 0; letter-spacing: -.3px; }
+.logo span { color: var(--accent); }
+.search-wrap { flex: 1; max-width: 340px; position: relative; margin-left: auto; }
+.search-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: var(--text-faint); pointer-events: none; }
+.search-input { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 50px; padding: 8px 16px 8px 36px; font-size: 13.5px; font-family: inherit; color: var(--text); outline: none; transition: border-color .2s, background .2s; }
+.search-input:focus { border-color: var(--accent); background: var(--surface); }
+.search-input::placeholder { color: var(--text-faint); }
+.nav-actions { display: flex; gap: 8px; align-items: center; }
+.btn-icon { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted); transition: background .15s, color .15s; font-size: 15px; text-decoration: none; }
+.btn-icon:hover { background: var(--surface2); color: var(--text); }
+
+/* ── PUBLISHER TABS ── */
+.pub-strip { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 2rem; display: flex; gap: 8px; align-items: center; overflow-x: auto; scrollbar-width: none; height: 52px; }
+.pub-strip::-webkit-scrollbar { display: none; }
+.pub-tab { flex-shrink: 0; padding: 6px 16px; border-radius: 50px; font-size: 13px; font-weight: 500; cursor: pointer; border: 1.5px solid var(--border); background: transparent; color: var(--text-muted); font-family: inherit; transition: all .18s; white-space: nowrap; }
+.pub-tab:hover { border-color: var(--accent); color: var(--accent); }
+.pub-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* ── TYPE TABS ── */
+.type-bar { padding: 1.25rem 2rem .75rem; display: flex; gap: 4px; align-items: center; }
+.type-tab { padding: 5px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; background: transparent; color: var(--text-muted); font-family: inherit; transition: all .15s; }
+.type-tab:hover { background: var(--surface2); color: var(--text); }
+.type-tab.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+.type-count { font-size: 11px; background: var(--surface2); color: var(--text-faint); padding: 1px 6px; border-radius: 20px; margin-left: 4px; font-weight: 400; }
+.type-tab.active .type-count { background: var(--border); color: var(--text-muted); }
+.filter-row { margin-left: auto; display: flex; gap: 6px; align-items: center; }
+.filter-chip { padding: 4px 12px; border-radius: 50px; font-size: 12px; border: 1px solid var(--border); background: var(--surface); color: var(--text-muted); cursor: pointer; font-family: inherit; transition: all .15s; }
+.filter-chip:hover { border-color: var(--accent); color: var(--accent); }
+.filter-chip.active { background: var(--accent-light); border-color: var(--accent); color: var(--accent); }
+
+/* ── STATS STRIP ── */
+.stats-strip { padding: 0 2rem .5rem; display: flex; gap: 1.5rem; font-size: 12.5px; color: var(--text-muted); align-items: center; }
+.progress-mini { width: 80px; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; display: inline-block; vertical-align: middle; margin-left: 6px; }
+.progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width .6s cubic-bezier(.4,0,.2,1); }
+.scrape-btn { margin-left: auto; display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 50px; border: 1.5px solid var(--accent); background: var(--surface); color: var(--accent); font-size: 12.5px; font-weight: 500; font-family: inherit; cursor: pointer; transition: all .18s; }
+.scrape-btn:hover { background: var(--accent); color: #fff; }
+.scrape-btn.loading { opacity: .7; pointer-events: none; }
+.dot-live { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: blink 1.4s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
+
+/* ── GRID WRAP ── */
+.grid-wrap { padding: .5rem 2rem 3rem; }
+.section-label { font-size: 13px; font-weight: 500; color: var(--text-muted); margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; }
+.section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* ── SERIES GRID ── */
+.series-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+}
+
+/* ── SERIES CARD ── */
+.series-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform .2s cubic-bezier(.4,0,.2,1), box-shadow .2s, border-color .2s;
+  position: relative;
+  animation: fadeUp .3s both;
+}
+.series-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); border-color: #ccc; }
+.series-card.all-owned { border-color: var(--accent); }
+.series-card.all-owned::after { content: ''; position: absolute; inset: 0; border-radius: var(--radius); border: 2px solid var(--accent); pointer-events: none; }
+.series-card.some-owned { border-color: #a8d5be; }
+
+/* stack cover: show up to 3 covers fanned */
+.series-cover-stack {
+  aspect-ratio: 2/3;
+  position: relative;
+  background: var(--surface2);
+  overflow: hidden;
+}
+.series-cover-stack .sc-img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform .3s;
+}
+.series-card:hover .sc-img { transform: scale(1.04); }
+.series-cover-stack .sc-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 36px; color: var(--border); }
+
+/* badges on cover */
+.sc-type { position: absolute; top: 8px; left: 8px; font-size: 10px; font-weight: 600; padding: 3px 7px; border-radius: 20px; letter-spacing: .04em; }
+.pill-ln { background: var(--tag-ln-bg); color: var(--tag-ln); }
+.pill-manga { background: var(--tag-manga-bg); color: var(--tag-manga); }
+.pill-novel { background: var(--tag-novel-bg); color: var(--tag-novel); }
+.pill-artbook { background: var(--tag-artbook-bg); color: var(--tag-artbook); }
+.pill-want { background: var(--tag-want-bg); color: var(--tag-want); border: 1px solid var(--tag-want); }
+.sc-count {
+  position: absolute; bottom: 8px; right: 8px;
+  background: rgba(26,24,20,.65);
+  color: #fff;
+  font-size: 11px; font-weight: 600;
+  padding: 3px 8px; border-radius: 20px;
+  backdrop-filter: blur(4px);
+}
+.sc-owned-badge {
+  position: absolute; top: 8px; right: 8px;
+  background: var(--owned); color: #fff;
+  font-size: 10px; font-weight: 600;
+  padding: 3px 8px; border-radius: 20px;
+}
+
+.series-meta { padding: 10px 10px 12px; }
+.series-title { font-size: 12.5px; font-weight: 600; line-height: 1.4; color: var(--text); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 5px; }
+.series-author { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 6px; }
+
+/* owned progress bar */
+.series-progress { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; margin-bottom: 6px; }
+.series-progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width .4s; }
+.series-progress-label { font-size: 10.5px; color: var(--text-faint); }
+
+/* set badges row */
+.series-sets { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+.set-pill { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 3px; letter-spacing: .04em; text-transform: uppercase; }
+.set-complete { background: var(--accent); color: #fff; }
+.set-special  { background: var(--accent2); color: #fff; }
+.set-ultimate { background: var(--text); color: #fff; }
+
+/* ── BOOK CARD (inside series modal) ── */
+.book-card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; cursor: pointer; transition: transform .18s, box-shadow .18s, border-color .18s; position: relative; }
+.book-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); border-color: #ccc; }
+.book-card.owned { border-color: var(--accent); }
+.book-card.owned::after { content: ''; position: absolute; inset: 0; border-radius: var(--radius); border: 2px solid var(--accent); pointer-events: none; }
+.cover { aspect-ratio: 2/3; background: var(--surface2); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+.cover img { width: 100%; height: 100%; object-fit: cover; transition: transform .3s; }
+.book-card:hover .cover img { transform: scale(1.04); }
+.cover-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--border); font-size: 32px; }
+.owned-ribbon { position: absolute; top: 8px; right: 8px; background: var(--owned); color: #fff; font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 20px; }
+.want-ribbon { position: absolute; top: 8px; right: 36px; background: var(--tag-want-bg); color: var(--tag-want); font-size: 9px; font-weight: 600; padding: 3px 7px; border-radius: 14px; border: 1px solid var(--tag-want); display: flex; align-items: center; gap: 3px; }
+.want-ribbon svg { width: 12px; height: 12px; }
+.type-pill { position: absolute; top: 8px; left: 8px; font-size: 10px; font-weight: 600; padding: 3px 7px; border-radius: 20px; }
+.book-meta { padding: 10px 10px 11px; }
+.book-title { font-size: 12.5px; font-weight: 500; line-height: 1.45; color: var(--text); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 4px; }
+.book-author { font-size: 11px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.book-price { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-top: 5px; }
+.own-toggle { width: 100%; margin-top: 7px; padding: 5px; border-radius: 6px; border: 1px solid var(--border); background: transparent; font-size: 11.5px; font-weight: 500; font-family: inherit; color: var(--text-muted); cursor: pointer; transition: all .15s; }
+.own-toggle:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+.book-card.owned .own-toggle { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }
+.want-toggle { width: 100%; margin-top: 7px; padding: 5px; border-radius: 6px; border: 1px solid var(--tag-want); background: transparent; font-size: 11.5px; font-weight: 500; font-family: inherit; color: var(--tag-want); cursor: pointer; transition: all .15s; }
+.want-toggle:hover { background: var(--tag-want); color: #000; }
+.book-card.wanted .want-toggle { background: var(--tag-want); color: #000; }
+
+/* ── EMPTY STATE ── */
+.empty-state { text-align: center; padding: 4rem 2rem; color: var(--text-muted); }
+.empty-state .e-icon { font-size: 48px; margin-bottom: 1rem; }
+.empty-state p { font-size: 14px; }
+
+/* ── MODALS (shared base) ── */
+.modal-bg {
+  position: fixed; inset: 0;
+  background: rgba(20,18,14,.5);
+  z-index: 200;
+  display: none; align-items: center; justify-content: center;
+  padding: 1rem;
+  backdrop-filter: blur(3px);
+}
+.modal-bg.open { display: flex; }
+
+/* ── SERIES MODAL ── */
+.series-modal {
+  background: var(--surface);
+  border-radius: 18px;
+  width: 100%; max-width: 760px;
+  max-height: 92vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 80px rgba(0,0,0,.25);
+  animation: fadeUp .25s both;
+}
+.sm-header {
+  padding: 1.5rem 1.5rem 1rem;
+  position: sticky; top: 0;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  z-index: 2;
+}
+.sm-header-top { display: flex; align-items: flex-start; gap: 12px; }
+.sm-type { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 4px; }
+.sm-title { font-family: 'DM Serif Display', serif; font-size: 22px; line-height: 1.3; flex: 1; }
+.sm-author { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+.sm-stats { display: flex; gap: 12px; align-items: center; margin-top: 10px; font-size: 12.5px; color: var(--text-muted); }
+.sm-progress { flex: 1; height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.sm-progress-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width .5s; }
+.sm-action-btn { padding: 6px 14px; border-radius: 50px; border: 2px solid var(--tag-novel); background: var(--tag-novel-bg); color: var(--tag-novel); font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s; white-space: nowrap; }
+.sm-action-btn:hover { background: var(--tag-novel); color: #fff; }
+.sm-action-btn.owned { background: #FFD700; border-color: #FFD700; color: #000; }
+.sm-action-btn.owned:hover { background: #FFC000; }
+.sm-body { padding: 1.25rem 1.5rem 1.5rem; }
+.sm-section-label { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 10px; letter-spacing: .04em; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+.sm-section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.sm-vol-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; margin-bottom: 1.5rem; }
+.sm-sets-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-bottom: 1.5rem; }
+.close-btn { width: 32px; height: 32px; flex-shrink: 0; border-radius: 50%; border: 1px solid var(--border); background: transparent; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-muted); transition: all .15s; }
+.close-btn:hover { background: var(--surface2); color: var(--text); }
+
+/* ── BOOK DETAIL MODAL (layered on top) ── */
+.detail-modal-bg {
+  position: fixed; inset: 0;
+  background: rgba(20,18,14,.35);
+  z-index: 300;
+  display: none; align-items: center; justify-content: center;
+  padding: 1rem;
+  backdrop-filter: blur(2px);
+}
+.detail-modal-bg.open { display: flex; }
+.detail-modal {
+  background: var(--surface);
+  border-radius: 18px;
+  width: 100%; max-width: 620px;
+  max-height: 92vh;
+  box-shadow: 0 24px 80px rgba(0,0,0,.3);
+  animation: fadeUp .2s both;
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+}
+
+/* ซ้าย: รูปปกเต็ม */
+.dm-cover {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--surface2);
+  position: relative;
+  overflow: hidden;
+}
+.dm-cover img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.dm-cover-placeholder {
+  width: 100%; height: 100%;
+  min-height: 320px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 56px; color: var(--border);
+}
+.dm-cover-type {
+  position: absolute; bottom: 12px; left: 12px;
+  font-size: 10px; font-weight: 700; padding: 3px 9px;
+  border-radius: 20px; letter-spacing: .05em;
+}
+
+/* ขวา: info scroll */
+.dm-body {
+  flex: 1;
+  padding: 1.25rem 1.25rem 1.25rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.dm-type { font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 6px; }
+.dm-title { font-family: 'DM Serif Display', serif; font-size: 19px; line-height: 1.35; margin-bottom: 4px; }
+.dm-author { font-size: 13px; color: var(--text-muted); margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+.dm-meta { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1rem; }
+.meta-row { display: flex; align-items: baseline; gap: 8px; }
+.meta-row label { font-size: 11px; color: var(--text-faint); flex-shrink: 0; width: 72px; }
+.meta-row span { font-size: 13px; font-weight: 500; color: var(--text); }
+.dm-price {
+  font-family: 'DM Serif Display', serif;
+  font-size: 22px; color: var(--accent);
+  margin-bottom: 1rem;
+}
+.dm-actions { display: flex; flex-direction: column; gap: 8px; margin-top: auto; padding-top: .75rem; }
+.btn-primary { width: 100%; padding: 11px; border-radius: var(--radius-sm); border: none; background: var(--accent); color: #fff; font-size: 13.5px; font-weight: 600; font-family: inherit; cursor: pointer; transition: background .15s; text-align: center; }
+.btn-primary:hover { background: #1e5237; }
+.btn-primary.owned-btn { background: var(--accent-light); color: var(--accent); }
+.btn-primary.owned-btn:hover { background: #b8e0cc; }
+.btn-want { width: 100%; padding: 11px; border-radius: var(--radius-sm); border: 2px solid var(--tag-want); background: var(--tag-want-bg); color: var(--tag-want); font-size: 13.5px; font-weight: 600; font-family: inherit; cursor: pointer; transition: all .15s; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.btn-want:hover { background: var(--tag-want); color: #000; }
+.btn-want.wanted { background: var(--tag-want); color: #000; }
+.btn-outline { width: 100%; padding: 9px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: transparent; color: var(--text-muted); font-size: 13px; font-family: inherit; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all .15s; }
+.btn-outline:hover { border-color: var(--text-muted); color: var(--text); }
+
+.close-abs {
+  position: absolute; top: 10px; right: 10px;
+  width: 30px; height: 30px; border-radius: 50%;
+  border: none; background: rgba(255,255,255,.9);
+  font-size: 14px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text); box-shadow: 0 1px 6px rgba(0,0,0,.18);
+  z-index: 2;
+  transition: background .15s;
+}
+.close-abs:hover { background: #fff; }
+
+/* mobile: stack vertically */
+@media (max-width: 520px) {
+  .detail-modal { flex-direction: column; max-width: 100%; }
+  .dm-cover { width: 100%; height: 240px; }
+  .dm-cover img { object-position: top; }
+}
+
+/* ── TOAST ── */
+.toast { position: fixed; bottom: 1.5rem; right: 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 16px; font-size: 13px; box-shadow: var(--shadow-hover); display: flex; align-items: center; gap: 10px; z-index: 999; opacity: 0; transform: translateY(12px); transition: all .25s; max-width: 300px; }
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast-text { flex: 1; color: var(--text); }
+.toast-sub { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+.series-card { animation: fadeUp .3s both; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 640px) {
+  nav, .pub-strip, .type-bar, .stats-strip, .grid-wrap { padding-left: 1rem; padding-right: 1rem; }
+  .series-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
+  .search-wrap { max-width: 180px; }
+  .sm-vol-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+  <a href="#" class="logo">Book<span>Shelf</span></a>
+  <div class="search-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input class="search-input" id="searchInput" placeholder="ค้นหาชื่อเรื่อง หรือผู้เขียน…">
+  </div>
+  <div class="nav-actions">
+    <button class="btn-icon" onclick="refreshFromAPI()" title="Refresh">⟳</button>
+    <button class="btn-icon" onclick="exportExcel()" title="Export">↓</button>
+  </div>
+</nav>
+
+<!-- PUBLISHER TABS -->
+<div class="pub-strip" id="pubStrip"></div>
+
+<!-- TYPE TABS + FILTERS -->
+<div class="type-bar">
+  <button class="type-tab active" data-type="all" onclick="setType(this,'all')">ทั้งหมด <span class="type-count" id="cnt-all">0</span></button>
+  <button class="type-tab" data-type="LN" onclick="setType(this,'LN')">Light Novel <span class="type-count" id="cnt-LN">0</span></button>
+  <button class="type-tab" data-type="Novel" onclick="setType(this,'Novel')">Novel <span class="type-count" id="cnt-Novel">0</span></button>
+  <button class="type-tab" data-type="Manga" onclick="setType(this,'Manga')">Manga <span class="type-count" id="cnt-Manga">0</span></button>
+  <button class="type-tab" data-type="Artbook" onclick="setType(this,'Artbook')">Artbook <span class="type-count" id="cnt-Artbook">0</span></button>
+  <button class="type-tab" data-type="owned" onclick="setType(this,'owned')">มีแล้ว ✓ <span class="type-count" id="cnt-owned">0</span></button>
+  <button class="type-tab" data-type="want" onclick="setType(this,'want')">อยากได้ 💛 <span class="type-count" id="cnt-want">0</span></button>
+  <div class="filter-row">
+    <button class="filter-chip" id="sortPrice" onclick="toggleSort()">ราคา ↕</button>
+    <button class="filter-chip active" id="sortTitle" onclick="sortByTitle()">ชื่อ A→Z</button>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats-strip">
+  <span><strong id="statOwned">0</strong> / <strong id="statTotal">0</strong> เล่ม</span>
+  <span><div class="progress-mini"><div class="progress-fill" id="progressFill" style="width:0%"></div></div></span>
+  <span id="statPct">0%</span>
+  <button class="scrape-btn" id="scrapeBtn" onclick="scrapeNow()">
+    <span class="dot-live"></span> Scrape Now
+  </button>
+</div>
+
+<!-- MAIN GRID -->
+<div class="grid-wrap" id="gridWrap">
+  <div class="section-label" id="sectionLabel">ทั้งหมด</div>
+  <div class="series-grid" id="bookGrid"></div>
+  <div class="empty-state" id="emptyState" style="display:none">
+    <div class="e-icon">📚</div>
+    <p>ยังไม่มีหนังสือในรายการ<br>กด Scrape Now เพื่อดึงข้อมูล</p>
+  </div>
+</div>
+
+<!-- SERIES MODAL -->
+<div class="modal-bg" id="seriesModalBg" onclick="if(event.target===this)closeSeriesModal()">
+  <div class="series-modal" id="seriesModal">
+    <div class="sm-header">
+      <div class="sm-header-top">
+        <div style="flex:1">
+          <div class="sm-type" id="smType"></div>
+          <div class="sm-title" id="smTitle"></div>
+          <div class="sm-author" id="smAuthor"></div>
+        </div>
+        <button class="close-btn" onclick="closeSeriesModal()">✕</button>
+      </div>
+      <div class="sm-stats">
+        <span id="smOwnedLabel" style="flex-shrink:0"></span>
+        <div class="sm-progress"><div class="sm-progress-fill" id="smProgressFill" style="width:0%"></div></div>
+        <span id="smPct"></span>
+        <button class="sm-action-btn" id="smOwnSeriesBtn" onclick="toggleOwnSeries()" style="margin-left:12px;padding:6px 14px;border-radius:50px;border:2px solid var(--tag-novel);background:var(--tag-novel-bg);color:var(--tag-novel);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s">+ มีทั้งซีรีส์</button>
+      </div>
+    </div>
+    <div class="sm-body" id="smBody"></div>
+  </div>
+</div>
+
+<!-- BOOK DETAIL MODAL (z-index 300, layered above series modal) -->
+<div class="detail-modal-bg" id="detailModalBg" onclick="if(event.target===this)closeDetailModal()">
+  <div class="detail-modal">
+    <button class="close-abs" onclick="closeDetailModal()">✕</button>
+    <!-- ซ้าย: ปก -->
+    <div class="dm-cover" id="dmCover"></div>
+    <!-- ขวา: info -->
+    <div class="dm-body">
+      <div class="dm-type" id="dmType"></div>
+      <div class="dm-title" id="dmTitle"></div>
+      <div class="dm-author" id="dmAuthor"></div>
+      <div class="dm-meta">
+        <div class="meta-row"><label>สำนักพิมพ์</label><span id="dmPub">—</span></div>
+        <div class="meta-row"><label>ผู้วาดภาพ</label><span id="dmIllus">—</span></div>
+        <div class="meta-row"><label>หมวดหมู่</label><span id="dmGenre">—</span></div>
+      </div>
+      <div class="dm-price" id="dmPrice"></div>
+      <div class="dm-actions">
+        <button class="btn-primary" id="dmOwnBtn" onclick="toggleOwnDetail()">เพิ่มเข้าคอลเลคชัน</button>
+        <button class="btn-want" id="dmWantBtn" onclick="toggleWantDetail()" style="margin-top:8px;padding:10px;border-radius:8px;border:2px solid var(--tag-want);background:var(--tag-want-bg);color:var(--tag-want);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+          อยากได้
+        </button>
+        <a href="#" target="_blank" class="btn-outline" id="dmLink">ดูในเว็บสำนักพิมพ์ ↗</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span id="toastIcon">⏳</span>
+  <div><div class="toast-text" id="toastText"></div><div class="toast-sub" id="toastSub"></div></div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════
+const API_BASE = 'http://localhost:5000';
+const DB_KEY   = 'bookshelf_v1';
+const OWN_KEY  = 'bookshelf_owned';
+
+let state = {
+  books: [], owned: {}, want: {},
+  publisher: 'all', type: 'all',
+  search: '', sort: 'title'
+};
+
+async function loadState() {
+  try {
+    const res = await fetch(`${API_BASE}/books`);
+    const data = await res.json();
+    state.books = data.books || [];
+    state.owned = data.owned || {};
+    const w = localStorage.getItem('bookshelf_want');
+    state.want = w ? JSON.parse(w) : {};
+    console.log('✅ Loaded:', state.books.length, 'books');
+  } catch(e) {
+    console.error('[loadState] Error:', e);
+    // Fallback to localStorage
+    const r = localStorage.getItem(DB_KEY);
+    if (r) state.books = JSON.parse(r);
+    const o = localStorage.getItem(OWN_KEY);
+    if (o) state.owned = JSON.parse(o);
+    const w = localStorage.getItem('bookshelf_want');
+    if (w) state.want = JSON.parse(w);
+    console.log('Loaded from localStorage:', state.books.length);
+  }
+}
+
+function saveState() {
+  localStorage.setItem(DB_KEY, JSON.stringify(state.books));
+  localStorage.setItem(OWN_KEY, JSON.stringify(state.owned));
+  localStorage.setItem('bookshelf_want', JSON.stringify(state.want));
+  fetch(`${API_BASE}/owned`, {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({owned: state.owned})
+  }).catch(()=>{});
+}
+
+// ══════════════════════════════════════════════════
+// SERIES GROUPING
+// ══════════════════════════════════════════════════
+
+// คีย์เวิร์ดที่ใช้แยก set ออกจาก volume ปกติ
+const SET_PATTERNS = [
+  { key: 'complete', re: /complete\s+set/i },
+  { key: 'special',  re: /special\s+set/i },
+  { key: 'ultimate', re: /ultimate\s+set/i },
+  { key: 'boxset',   re: /box\s*set|collection\s+box/i },
+  { key: 'shortstory', re: /short\s+story\s+set/i },
+];
+
+function classifyBook(title) {
+  for (const p of SET_PATTERNS) {
+    if (p.re.test(title)) return p.key;
+  }
+  return 'volume';
+}
+
+function extractSeriesKey(title) {
+  // ตัด set keywords ออกก่อน
+  let t = title
+    .replace(/complete\s+set/i, '')
+    .replace(/special\s+set/i, '')
+    .replace(/ultimate\s+set/i, '')
+    .replace(/box\s*set|collection\s+box/i, '')
+    .replace(/short\s+story\s+set/i, '')
+    .replace(/\[.*?\]/g, '')   // ตัด [แถมฟรี!...]
+    .trim();
+
+  // ตัด "เล่ม X" ออก (รองรับทั้งเลขอาราบิกและไทย)
+  t = t.replace(/\s+เล่ม\s+[\d๐-๙]+.*/i, '').trim();
+
+  // ตัด Alter/Le/Ep X ออก
+  t = t.replace(/\s+(Alter|Le|Ep)\s+\d+.*/i, '').trim();
+
+  // ตัด Vol./Volume X ออก
+  t = t.replace(/\s+[Vv]ol\.?\s*\d+.*/i, '').trim();
+
+  return t.toLowerCase().replace(/\s+/g, ' ').trim();
+}
+
+function getVolumeNumber(title) {
+  const m = title.match(/เล่ม\s+([\d๐-๙]+)/i);
+  if (!m) return 999;
+  const s = m[1];
+  // แปลงเลขไทย
+  const thai = '๐๑๒๓๔๕๖๗๘๙';
+  if (/[๐-๙]/.test(s)) {
+    return parseInt([...s].map(c => thai.indexOf(c)).join(''));
+  }
+  return parseInt(s);
+}
+
+function groupBySeries(books) {
+  const map = {};
+
+  books.forEach(b => {
+    const cls = classifyBook(b.Title);
+    const key = extractSeriesKey(b.Title);
+    if (!key) return;
+
+    if (!map[key]) {
+      map[key] = {
+        key, name: '', author: '', type: b.Type, publisher: b.Publisher,
+        volumes: [], sets: {}
+      };
+    }
+
+    const g = map[key];
+
+    if (cls === 'volume') {
+      g.volumes.push(b);
+      // ใช้ชื่อซีรีส์ตรงๆ จาก title (ก่อน เล่ม)
+      const nameMatch = b.Title.replace(/\[.*?\]/g, '').trim().match(/^(.+?)\s+เล่ม\s+[\d๐-๙]/i);
+      if (nameMatch && !g.name) g.name = nameMatch[1].trim();
+      if (!g.author && b.Author) g.author = b.Author;
+    } else {
+      g.sets[cls] = b;
+      if (!g.name) {
+        // ดึงชื่อจาก set title
+        const cleaned = b.Title
+          .replace(/complete\s+set/i,'').replace(/special\s+set/i,'')
+          .replace(/ultimate\s+set/i,'').replace(/box\s*set|collection\s+box/i,'')
+          .replace(/\[.*?\]/g,'').trim();
+        if (cleaned) g.name = cleaned;
+      }
+    }
+  });
+
+  // ถ้าไม่มีชื่อดีๆ ใช้ key แทน
+  Object.values(map).forEach(g => {
+    if (!g.name) g.name = g.key;
+    // เรียง volumes ตามเลขเล่ม
+    g.volumes.sort((a, b) => getVolumeNumber(a.Title) - getVolumeNumber(b.Title));
+  });
+
+  // เรียง group ตามชื่อ
+  return Object.values(map).sort((a, b) => a.name.localeCompare(b.name, 'th'));
+}
+
+function countOwned(group) {
+  const allBooks = [
+    ...group.volumes,
+    ...Object.values(group.sets)
+  ];
+  return allBooks.filter(b => state.owned[b.Link]).length;
+}
+
+function countTotal(group) {
+  return group.volumes.length + Object.keys(group.sets).length;
+}
+
+// ══════════════════════════════════════════════════
+// FILTER
+// ══════════════════════════════════════════════════
+function getFilteredBooks() {
+  let books = [...state.books];
+  if (state.publisher !== 'all') books = books.filter(b => b.Publisher === state.publisher);
+  if (state.type === 'owned')    books = books.filter(b => state.owned[b.Link]);
+  else if (state.type === 'want') books = books.filter(b => state.want[b.Link]);
+  else if (state.type !== 'all') books = books.filter(b => b.Type === state.type);
+  if (state.search.trim()) {
+    const q = state.search.trim().toLowerCase();
+    books = books.filter(b =>
+      (b.Title||'').toLowerCase().includes(q) ||
+      (b.Author||'').toLowerCase().includes(q)
+    );
+  }
+  return books;
+}
+
+// ══════════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════════
+function renderPubTabs() {
+  const strip = document.getElementById('pubStrip');
+  strip.innerHTML = '';
+  const mkBtn = (label, val) => {
+    const b = document.createElement('button');
+    b.className = 'pub-tab' + (state.publisher === val ? ' active' : '');
+    b.textContent = label;
+    b.onclick = () => { state.publisher = val; renderPubTabs(); renderGrid(); };
+    return b;
+  };
+  strip.appendChild(mkBtn('ทั้งหมด', 'all'));
+  [...new Set(state.books.map(b => b.Publisher).filter(Boolean))].forEach(p => strip.appendChild(mkBtn(p, p)));
+  const add = document.createElement('button');
+  add.className = 'pub-tab';
+  add.textContent = '+ เพิ่มสำนักพิมพ์';
+  add.style.cssText = 'border-style:dashed;color:var(--text-faint)';
+  add.onclick = () => { window.location.href = 'setting/Setting.html'; };
+  strip.appendChild(add);
+}
+
+function renderGrid() {
+  console.log('[renderGrid] Starting, filtered:', getFilteredBooks().length);
+  const filtered = getFilteredBooks();
+  const grid     = document.getElementById('bookGrid');
+  const empty    = document.getElementById('emptyState');
+
+  // update counts
+  const allB = state.publisher === 'all' ? state.books : state.books.filter(b => b.Publisher === state.publisher);
+  document.getElementById('cnt-all').textContent   = allB.length;
+  document.getElementById('cnt-LN').textContent    = allB.filter(b => b.Type === 'LN').length;
+  document.getElementById('cnt-Novel').textContent = allB.filter(b => b.Type === 'Novel').length;
+  document.getElementById('cnt-Manga').textContent = allB.filter(b => b.Type === 'Manga').length;
+  document.getElementById('cnt-Artbook').textContent = allB.filter(b => b.Type === 'Artbook').length;
+  document.getElementById('cnt-owned').textContent = allB.filter(b => state.owned[b.Link]).length;
+  document.getElementById('cnt-want').textContent  = allB.filter(b => state.want[b.Link]).length;
+
+  const total = allB.length;
+  const owned = allB.filter(b => state.owned[b.Link]).length;
+  const pct   = total ? Math.round(owned / total * 100) : 0;
+  document.getElementById('statOwned').textContent = owned;
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statPct').textContent   = pct + '%';
+  document.getElementById('progressFill').style.width = pct + '%';
+
+  const typeNames = { all:'ทั้งหมด', LN:'Light Novel', Novel:'Novel', Manga:'Manga', Artbook:'Artbook', owned:'มีแล้ว', want:'อยากได้' };
+  document.getElementById('sectionLabel').textContent = typeNames[state.type] || 'ทั้งหมด';
+
+  if (filtered.length === 0) {
+    console.log('[renderGrid] No books to display');
+    grid.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  const groups = groupBySeries(filtered);
+  console.log('[renderGrid] Groups:', groups.length);
+
+  grid.innerHTML = groups.map((g, i) => {
+    const tot     = countTotal(g);
+    const own     = countOwned(g);
+    const pctG    = tot ? Math.round(own / tot * 100) : 0;
+    const allOwn  = own === tot && tot > 0;
+    const someOwn = own > 0 && own < tot;
+    const delay   = Math.min(i * 25, 400);
+
+    // ภาพปกจาก volume แรกที่มีรูป
+    const coverBook = g.volumes.find(b => b.Image) || Object.values(g.sets).find(b => b.Image);
+    const imgHtml = coverBook?.Image
+      ? `<img class="sc-img" src="${coverBook.Image}" alt="${g.name}" onerror="this.style.display='none'">`
+      : `<div class="sc-placeholder">${g.type === 'LN' ? '📖' : '📚'}</div>`;
+
+    // badges: set types + LN/Manga (ถ้าไม่มี set ใดเลย จึงแสดง type)
+    const setKeys = Object.keys(g.sets);
+    const SET_LABEL = {
+      complete:   { cls: 'set-complete',  label: 'Complete' },
+      special:    { cls: 'set-special',   label: 'Special'  },
+      ultimate:   { cls: 'set-ultimate',  label: 'Ultimate' },
+      boxset:     { cls: 'set-ultimate',  label: 'Box Set'  },
+      shortstory: { cls: 'set-complete',  label: 'Short Story' },
+    };
+    const setBadges = setKeys.map(k => {
+      const s = SET_LABEL[k] || { cls: 'set-complete', label: k };
+      return `<span class="set-pill ${s.cls}">${s.label}</span>`;
+    }).join('');
+
+    // type badge เล็กๆ มุมบนซ้ายของรูป (เอาไว้แค่ใน cover ไม่แสดงใน meta)
+    const typePillMap = {
+      'LN': { class: 'pill-ln', label: 'LN' },
+      'Novel': { class: 'pill-novel', label: 'N' },
+      'Manga': { class: 'pill-manga', label: 'MG' },
+      'Artbook': { class: 'pill-artbook', label: 'AB' }
+    };
+    const typePill = typePillMap[g.type] || { class: 'pill-ln', label: 'LN' };
+    const typePillClass = typePill.class;
+    const typePillLabel = typePill.label;
+
+    return `
+    <div class="series-card ${allOwn ? 'all-owned' : someOwn ? 'some-owned' : ''}"
+         style="animation-delay:${delay}ms"
+         onclick="openSeriesModal(${i})"
+         data-idx="${i}">
+      <div class="series-cover-stack">
+        ${imgHtml}
+        <div class="sc-type ${typePillClass}">${typePillLabel}</div>
+        <div class="sc-count">${tot} เล่ม</div>
+        ${allOwn ? `<div class="sc-owned-badge">✓ ครบ</div>` : ''}
+      </div>
+      <div class="series-meta">
+        <div class="series-title">${g.name}</div>
+        ${g.author ? `<div class="series-author">${g.author}</div>` : ''}
+        <div class="series-progress">
+          <div class="series-progress-fill" style="width:${pctG}%"></div>
+        </div>
+        <div class="series-progress-label">${own}/${tot} เล่ม${own > 0 ? ` (${pctG}%)` : ''}</div>
+        ${setBadges ? `<div class="series-sets">${setBadges}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  // store for modal access
+  window._groups = groups;
+}
+
+// ══════════════════════════════════════════════════
+// SERIES MODAL
+// ══════════════════════════════════════════════════
+let _currentGroupIdx = null;
+
+function openSeriesModal(idx) {
+  _currentGroupIdx = idx;
+  const g = window._groups ? window._groups[idx] : null;
+  if (!g) {
+    console.error('openSeriesModal: group not found', idx);
+    return;
+  }
+
+  const tot  = countTotal(g);
+  const own  = countOwned(g);
+  const pct  = tot ? Math.round(own / tot * 100) : 0;
+  const allOwn = own === tot && tot > 0;
+  const allLinks = [...g.volumes.map(b => b.Link), ...Object.values(g.sets).map(b => b.Link)];
+  const allWant = allLinks.every(link => state.want[link]);
+
+  const typePillMap = {
+    'LN': { label: 'Light Novel', color: 'var(--tag-ln)' },
+    'Novel': { label: 'Novel', color: 'var(--tag-novel)' },
+    'Manga': { label: 'Manga', color: 'var(--tag-manga)' },
+    'Artbook': { label: 'Artbook', color: 'var(--tag-artbook)' }
+  };
+  const typePill = typePillMap[g.type] || typePillMap['LN'];
+  
+  document.getElementById('smType').textContent  = typePill.label;
+  document.getElementById('smType').style.color  = typePill.color;
+  document.getElementById('smTitle').textContent = g.name;
+  document.getElementById('smAuthor').textContent = g.author ? 'โดย ' + g.author : '';
+  document.getElementById('smOwnedLabel').textContent = `${own} / ${tot} เล่ม`;
+  document.getElementById('smProgressFill').style.width = pct + '%';
+  document.getElementById('smPct').textContent = pct + '%';
+  
+  // ปุ่ม owned ทั้งซีรีส์
+  const ownSeriesBtn = document.getElementById('smOwnSeriesBtn');
+  ownSeriesBtn.textContent = allOwn ? '✓ มีทั้งซีรีส์แล้ว' : '+ มีทั้งซีรีส์';
+  ownSeriesBtn.className = 'sm-action-btn' + (allOwn ? ' owned' : '');
+
+  const body = document.getElementById('smBody');
+  let html = '';
+
+  // ── VOLUMES SECTION ──
+  if (g.volumes.length > 0) {
+    html += `<div class="sm-section-label">เล่มปกติ (${g.volumes.length} เล่ม)</div>`;
+    html += `<div class="sm-vol-grid">` + g.volumes.map(b => bookCardHtml(b)).join('') + `</div>`;
+  }
+
+  // ── SETS SECTION ──
+  const setEntries = Object.entries(g.sets);
+  if (setEntries.length > 0) {
+    html += `<div class="sm-section-label">Set / Box</div>`;
+    html += `<div class="sm-sets-grid">` + setEntries.map(([k, b]) => bookCardHtml(b, k)).join('') + `</div>`;
+  }
+
+  body.innerHTML = html;
+
+  document.getElementById('seriesModalBg').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function bookCardHtml(b, setLabel) {
+  const isOwned = !!state.owned[b.Link];
+  const isWant = !!state.want[b.Link];
+  const safeBook = JSON.stringify(b).replace(/"/g, '&quot;');
+  const labelPill = setLabel
+    ? `<div class="type-pill" style="background:${setLabel==='complete'?'var(--accent)':setLabel==='special'?'var(--accent2)':'var(--text)'};color:#fff">${setLabel}</div>`
+    : '';
+
+  return `
+  <div class="book-card ${isOwned ? 'owned' : ''} ${isWant ? 'wanted' : ''}" onclick="openDetailModal(${safeBook})">
+    <div class="cover">
+      ${b.Image
+        ? `<img src="${b.Image}" alt="${b.Title}" onerror="this.parentElement.innerHTML='<div class=cover-placeholder>📖</div>'">`
+        : `<div class="cover-placeholder">📖</div>`}
+      ${labelPill}
+      ${isOwned ? `<div class="owned-ribbon">✓</div>` : ''}
+      ${isWant ? `<div class="want-ribbon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>อยากได้</div>` : ''}
+    </div>
+    <div class="book-meta">
+      <div class="book-title">${b.Title}</div>
+      <div class="book-price">${b.Price || ''}</div>
+      <button class="own-toggle" onclick="event.stopPropagation();toggleOwn('${b.Link}')">
+        ${isOwned ? '✓ มีแล้ว' : '+ เพิ่ม'}
+      </button>
+      <button class="want-toggle" onclick="event.stopPropagation();toggleWant('${b.Link}')">
+        ${isWant ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle;margin-right:4px"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>อยากได้แล้ว' : '+ อยากได้'}
+      </button>
+    </div>
+  </div>`;
+}
+
+function toggleWantSeries() {
+  const g = window._groups[_currentGroupIdx];
+  if (!g) return;
+  
+  const allLinks = [
+    ...g.volumes.map(b => b.Link),
+    ...Object.values(g.sets).map(b => b.Link)
+  ];
+  
+  const allWant = allLinks.every(link => state.want[link]);
+  
+  if (allWant) {
+    allLinks.forEach(link => delete state.want[link]);
+  } else {
+    allLinks.forEach(link => state.want[link] = true);
+  }
+  
+  saveState();
+  openSeriesModal(_currentGroupIdx);
+  renderGrid();
+}
+
+function closeSeriesModal() {
+  document.getElementById('seriesModalBg').classList.remove('open');
+  document.body.style.overflow = '';
+  _currentGroupIdx = null;
+}
+
+function toggleOwnSeries() {
+  const g = window._groups[_currentGroupIdx];
+  if (!g) return;
+  
+  const allLinks = [
+    ...g.volumes.map(b => b.Link),
+    ...Object.values(g.sets).map(b => b.Link)
+  ];
+  
+  const allOwned = allLinks.every(link => state.owned[link]);
+  
+  if (allOwned) {
+    allLinks.forEach(link => delete state.owned[link]);
+  } else {
+    allLinks.forEach(link => state.owned[link] = true);
+  }
+  
+  saveState();
+  openSeriesModal(_currentGroupIdx);
+  renderGrid();
+}
+
+function toggleWant(link) {
+  if (state.want[link]) {
+    delete state.want[link];
+  } else {
+    state.want[link] = true;
+  }
+  saveState();
+  renderGrid();
+  if (_currentGroupIdx !== null) openSeriesModal(_currentGroupIdx);
+}
+  
+  saveState();
+  openSeriesModal(_currentGroupIdx);  // refresh modal
+  renderGrid();  // refresh grid
+
+
+// ══════════════════════════════════════════════════
+// BOOK DETAIL MODAL (layered on top)
+// ══════════════════════════════════════════════════
+let _currentDetailBook = null;
+
+/**
+ * smartFitImage — detect รูปว่า portrait/landscape/square
+ * แล้วเลือก object-fit ให้พอดีอัตโนมัติ
+ * portrait (ratio < 0.85)  → cover  (เต็ม frame)
+ * square / landscape (≥ 0.85) → contain + bg blur
+ */
+function smartFitImage(imgEl, containerEl) {
+  imgEl.onload = () => {
+    const ratio = imgEl.naturalWidth / imgEl.naturalHeight;
+    if (ratio < 0.85) {
+      // portrait — ปกหนังสือปกติ → cover เต็ม
+      imgEl.style.objectFit = 'cover';
+      containerEl.style.background = 'var(--surface2)';
+    } else {
+      // square หรือ landscape (เช่น box set) → contain + blur bg
+      imgEl.style.objectFit = 'contain';
+      imgEl.style.padding = '12px';
+      // blur backdrop จากรูปเดิม
+      containerEl.style.background = `var(--surface2)`;
+      containerEl.style.backgroundImage = `url('${imgEl.src}')`;
+      containerEl.style.backgroundSize = 'cover';
+      containerEl.style.backgroundPosition = 'center';
+      // overlay blur
+      if (!containerEl.querySelector('.blur-bg')) {
+        const blur = document.createElement('div');
+        blur.className = 'blur-bg';
+        blur.style.cssText = 'position:absolute;inset:0;backdrop-filter:blur(16px) brightness(.7);z-index:0';
+        containerEl.insertBefore(blur, containerEl.firstChild);
+        imgEl.style.position = 'relative';
+        imgEl.style.zIndex = '1';
+      }
+    }
+  };
+}
+
+function openDetailModal(book) {
+  _currentDetailBook = book;
+
+  // ── ปกซ้าย ──
+  const cover = document.getElementById('dmCover');
+  const typePillMap = {
+    'LN': { class: 'pill-ln', label: 'Light Novel' },
+    'Novel': { class: 'pill-novel', label: 'Novel' },
+    'Manga': { class: 'pill-manga', label: 'Manga' },
+    'Artbook': { class: 'pill-artbook', label: 'Artbook' }
+  };
+  const typePill = typePillMap[book.Type] || { class: 'pill-ln', label: 'Light Novel' };
+  const pillClass = typePill.class;
+  const pillLabel = typePill.label;
+  // reset blur bg จาก modal ครั้งก่อน
+  cover.style.backgroundImage = '';
+  if (book.Image) {
+    cover.innerHTML = `
+      <img src="${book.Image}" alt="${book.Title}"
+           onerror="this.parentElement.innerHTML='<div class=dm-cover-placeholder>📖</div>'">
+      <div class="dm-cover-type ${pillClass}" style="position:relative;z-index:2">${pillLabel}</div>`;
+    smartFitImage(cover.querySelector('img'), cover);
+  } else {
+    cover.innerHTML = `
+      <div class="dm-cover-placeholder">${book.Type === 'LN' ? '📖' : '📚'}</div>
+      <div class="dm-cover-type ${pillClass}">${pillLabel}</div>`;
+  }
+
+  // ── info ขวา ──
+  document.getElementById('dmType').textContent   = pillLabel;
+  document.getElementById('dmType').style.color   = book.Type === 'LN' ? 'var(--tag-ln)' : 'var(--tag-manga)';
+  document.getElementById('dmTitle').textContent  = book.Title || '—';
+  document.getElementById('dmAuthor').textContent = book.Author ? 'โดย ' + book.Author : '';
+  document.getElementById('dmPub').textContent    = book.Publisher || '—';
+  document.getElementById('dmIllus').textContent  = book.Illustrator || '—';
+  document.getElementById('dmGenre').textContent  = book.Genre || '—';
+  document.getElementById('dmPrice').textContent  = book.Price || '';
+  document.getElementById('dmLink').href          = book.Link || '#';
+
+  updateDetailOwnBtn();
+  updateDetailWantBtn();
+  document.getElementById('detailModalBg').classList.add('open');
+}
+
+function updateDetailOwnBtn() {
+  const isOwned = !!(
+    _currentDetailBook && state.owned[_currentDetailBook.Link]
+  );
+  const btn = document.getElementById('dmOwnBtn');
+  btn.textContent  = isOwned ? '✓ มีในคอลเลคชันแล้ว' : '+ เพิ่มเข้าคอลเลคชัน';
+  btn.className    = 'btn-primary' + (isOwned ? ' owned-btn' : '');
+}
+
+function toggleOwnDetail() {
+  if (!_currentDetailBook) return;
+  toggleOwn(_currentDetailBook.Link);
+  updateDetailOwnBtn();
+  updateDetailWantBtn();
+}
+
+function toggleWantDetail() {
+  if (!_currentDetailBook) return;
+  if (state.want[_currentDetailBook.Link]) {
+    delete state.want[_currentDetailBook.Link];
+  } else {
+    state.want[_currentDetailBook.Link] = true;
+  }
+  saveState();
+  updateDetailWantBtn();
+  renderGrid();
+  if (_currentGroupIdx !== null) openSeriesModal(_currentGroupIdx);
+}
+
+function updateDetailWantBtn() {
+  const btn = document.getElementById('dmWantBtn');
+  if (!btn || !_currentDetailBook) return;
+  const isWant = !!state.want[_currentDetailBook.Link];
+  const svg = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
+  if (isWant) {
+    btn.classList.add('wanted');
+    btn.innerHTML = svg + 'อยากได้แล้ว';
+  } else {
+    btn.classList.remove('wanted');
+    btn.innerHTML = svg + 'อยากได้';
+  }
+}
+
+function closeDetailModal() {
+  document.getElementById('detailModalBg').classList.remove('open');
+  _currentDetailBook = null;
+}
+
+// ══════════════════════════════════════════════════
+// OWNED TOGGLE
+// ══════════════════════════════════════════════════
+function toggleOwn(link) {
+  if (state.owned[link]) delete state.owned[link];
+  else state.owned[link] = true;
+  saveState();
+
+  // refresh series modal body ถ้าเปิดอยู่
+  if (_currentGroupIdx !== null) {
+    openSeriesModal(_currentGroupIdx);
+  }
+
+  // refresh main grid
+  renderGrid();
+}
+
+// ══════════════════════════════════════════════════
+// FILTER ACTIONS
+// ══════════════════════════════════════════════════
+function setType(el, type) {
+  document.querySelectorAll('.type-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  state.type = type;
+  renderGrid();
+}
+
+function toggleSort() {
+  state.sort = state.sort === 'price' ? 'title' : 'price';
+  document.getElementById('sortPrice').classList.toggle('active', state.sort === 'price');
+  document.getElementById('sortTitle').classList.toggle('active', state.sort === 'title');
+  renderGrid();
+}
+
+function sortByTitle() {
+  state.sort = 'title';
+  document.getElementById('sortPrice').classList.remove('active');
+  document.getElementById('sortTitle').classList.add('active');
+  renderGrid();
+}
+
+document.getElementById('searchInput').addEventListener('input', e => {
+  state.search = e.target.value;
+  renderGrid();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (document.getElementById('detailModalBg').classList.contains('open')) {
+      closeDetailModal();
+    } else {
+      closeSeriesModal();
+    }
+  }
+});
+
+// ══════════════════════════════════════════════════
+// API / SCRAPE
+// ══════════════════════════════════════════════════
+async function scrapeNow() {
+  const btn = document.getElementById('scrapeBtn');
+  btn.classList.add('loading');
+  btn.innerHTML = '<span class="dot-live"></span> กำลังดึงข้อมูล…';
+  try {
+    const res = await fetch(`${API_BASE}/scrape`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ publishers: [...new Set(state.books.map(b=>b.Publisher).filter(Boolean))] })
+    });
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    await refreshFromAPI();
+    console.log('✅ Scraped:', data.scraped, 'new books');
+  } catch(e) {
+    console.error('Scrape error:', e);
+    alert('เกิดข้อผิดพลาด - ไม่สามารถดึงข้อมูลได้');
+  }
+  btn.classList.remove('loading');
+  btn.innerHTML = '<span class="dot-live"></span> Scrape Now';
+}
+
+async function refreshFromAPI() {
+  try {
+    const res = await fetch(`${API_BASE}/books`);
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    const oldOwned = {...state.owned};
+    state.books = data.books || [];
+    state.owned = data.owned || {};
+    Object.keys(oldOwned).forEach(k => { if (oldOwned[k]) state.owned[k] = true; });
+    saveState();
+    renderPubTabs();
+    renderGrid();
+    console.log('✅ Refreshed:', state.books.length, 'books');
+  } catch(e) {
+    console.error('Refresh error:', e);
+    alert('ไม่สามารถโหลดข้อมูลได้ - ตรวจสอบว่า Server เปิดอยู่');
+  }
+}
+
+function exportExcel() {
+  fetch(`${API_BASE}/export`, {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ books: state.books, owned: state.owned })
+  }).then(r => r.blob()).then(blob => {
+    const a = Object.assign(document.createElement('a'), {
+      href: URL.createObjectURL(blob), download: 'my_booklist.xlsx'
+    });
+    a.click();
+    console.log('✅ Exported Excel');
+  }).catch(() => exportCSV());
+}
+
+function exportCSV() {
+  const headers = ['Title','Author','Illustrator','Type','Price','Publisher','Genre','Owned','Link'];
+  const rows = state.books.map(b => headers.map(h =>
+    h === 'Owned' ? (state.owned[b.Link] ? 'Yes' : 'No') : (b[h] || '')
+  ));
+  const csv = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'my_booklist.csv'; a.click();
+  console.log('✅ Exported CSV');
+}
+
+// ══════════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════════
+let _toastTimer;
+function showToast(icon, text, sub) {
+  clearTimeout(_toastTimer);
+  document.getElementById('toastIcon').textContent  = icon;
+  document.getElementById('toastText').textContent  = text;
+  document.getElementById('toastSub').textContent   = sub || '';
+  document.getElementById('toast').classList.add('show');
+  _toastTimer = setTimeout(() => document.getElementById('toast').classList.remove('show'), 4000);
+}
+
+// ══════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════
+loadState().then(() => {
+  console.log('[INIT] State loaded:', state.books.length, 'books');
+  renderPubTabs();
+  renderGrid();
+  console.log('[INIT] Done');
+});
+</script>
+</body>
+</html>
