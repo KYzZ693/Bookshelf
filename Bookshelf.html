@@ -6,6 +6,9 @@
 <title>My Book Shelf</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+</head>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -481,9 +484,26 @@ nav {
 // ══════════════════════════════════════════════════
 // STATE
 // ══════════════════════════════════════════════════
-const API_BASE = 'http://localhost:5000';
+// Firebase Config
+const firebaseConfig = {
+  apiKey: "AIzaSyAUjHsRJ49ql1yf_0DnQR8irLw4-o7ROcY",
+  authDomain: "bookshelf-db-web.firebaseapp.com",
+  databaseURL: "https://bookshelf-db-web-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "bookshelf-db-web",
+  storageBucket: "bookshelf-db-web.firebasestorage.app",
+  messagingSenderId: "512948524981",
+  appId: "1:512948524981:web:e924c18cfdab98ccfeabfc",
+  measurementId: "G-K5K2XXYJKD"
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const firebaseDB = firebase.database();
+
+// ใช้ Firebase (ไม่ต้องรัน python scraper.py แล้ว)
 const DB_KEY   = 'bookshelf_v1';
 const OWN_KEY  = 'bookshelf_owned';
+const WANT_KEY = 'bookshelf_want';
 
 let state = {
   books: [], owned: {}, want: {},
@@ -491,36 +511,79 @@ let state = {
   search: '', sort: 'title'
 };
 
+// ══ LOAD ══
 async function loadState() {
+  console.log('[loadState] Starting...');
+
   try {
-    const res = await fetch(`${API_BASE}/books`);
-    const data = await res.json();
-    state.books = data.books || [];
-    state.owned = data.owned || {};
-    const w = localStorage.getItem('bookshelf_want');
-    state.want = w ? JSON.parse(w) : {};
-    console.log('✅ Loaded:', state.books.length, 'books');
+    // โหลด books จาก Firebase
+    const booksSnap = await firebaseDB.ref('books').once('value');
+    const booksData = booksSnap.val();
+    
+    if (booksData && Array.isArray(booksData)) {
+      state.books = booksData;
+      console.log(`✅ Firebase: ${state.books.length} books`);
+    } else if (booksData && typeof booksData === 'object') {
+      state.books = Object.values(booksData);
+      console.log(`✅ Firebase (object): ${state.books.length} books`);
+    } else {
+      state.books = [];
+      console.warn('⚠️ No books in Firebase');
+    }
+    
+    // โหลด owned/want จาก Firebase
+    const ownedSnap = await firebaseDB.ref('owned').once('value');
+    const wantSnap = await firebaseDB.ref('want').once('value');
+    
+    state.owned = ownedSnap.val() || {};
+    state.want = wantSnap.val() || {};
+    
+    console.log(`✅ Owned: ${Object.keys(state.owned).length} items`);
+    console.log(`✅ Want: ${Object.keys(state.want).length} items`);
+    
   } catch(e) {
-    console.error('[loadState] Error:', e);
+    console.error('[loadState] Firebase error:', e.message);
+    
     // Fallback to localStorage
-    const r = localStorage.getItem(DB_KEY);
-    if (r) state.books = JSON.parse(r);
-    const o = localStorage.getItem(OWN_KEY);
-    if (o) state.owned = JSON.parse(o);
-    const w = localStorage.getItem('bookshelf_want');
-    if (w) state.want = JSON.parse(w);
-    console.log('Loaded from localStorage:', state.books.length);
+    try {
+      const r = localStorage.getItem(DB_KEY);
+      if (r) state.books = JSON.parse(r);
+      const o = localStorage.getItem(OWN_KEY);
+      if (o) state.owned = JSON.parse(o);
+      const w = localStorage.getItem(WANT_KEY);
+      if (w) state.want = JSON.parse(w);
+      console.log(`📦 localStorage: ${state.books.length} books`);
+    } catch {}
   }
 }
 
 function saveState() {
-  localStorage.setItem(DB_KEY, JSON.stringify(state.books));
-  localStorage.setItem(OWN_KEY, JSON.stringify(state.owned));
-  localStorage.setItem('bookshelf_want', JSON.stringify(state.want));
-  fetch(`${API_BASE}/owned`, {
-    method: 'POST', headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({owned: state.owned})
-  }).catch(()=>{});
+  if (typeof state === 'undefined') {
+    console.warn('[saveState] state not initialized yet');
+    return;
+  }
+  
+  // ป้องกันการเขียนข้อมูลว่างทับ
+  if (!state.books || state.books.length === 0) {
+    console.warn('[saveState] Not saving empty books array!');
+    return;
+  }
+  
+  try {
+    // บันทึกขึ้น Firebase
+    firebaseDB.ref('books').set(state.books);
+    firebaseDB.ref('owned').set(state.owned);
+    firebaseDB.ref('want').set(state.want);
+    
+    // Backup ใน localStorage ด้วย
+    localStorage.setItem(DB_KEY, JSON.stringify(state.books));
+    localStorage.setItem(OWN_KEY, JSON.stringify(state.owned));
+    localStorage.setItem(WANT_KEY, JSON.stringify(state.want));
+    
+    console.log('💾 Saved to Firebase & localStorage:', state.books.length, 'books');
+  } catch(e) {
+    console.error('[saveState] Error:', e.message);
+  }
 }
 
 // ══════════════════════════════════════════════════
@@ -1138,44 +1201,78 @@ async function scrapeNow() {
   const btn = document.getElementById('scrapeBtn');
   btn.classList.add('loading');
   btn.innerHTML = '<span class="dot-live"></span> กำลังดึงข้อมูล…';
+  showToast('⏳', 'กำลังดึงข้อมูลจากสำนักพิมพ์…', 'อาจใช้เวลา 1-2 นาที');
+  
   try {
-    const res = await fetch(`${API_BASE}/scrape`, {
+    // ต้องรัน python scraper.py ในเครื่องเท่านั้น
+    const res = await fetch('http://localhost:5000/scrape', {
       method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ publishers: [...new Set(state.books.map(b=>b.Publisher).filter(Boolean))] })
+      body: JSON.stringify({ publishers: ["PhoenixNext"] })
     });
-    if (!res.ok) throw new Error();
+    
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    await refreshFromAPI();
-    console.log('✅ Scraped:', data.scraped, 'new books');
+    
+    // อัพโหลดขึ้น Firebase อัตโนมัติ
+    await uploadToFirebase();
+    
+    showToast('✅', 'ดึงข้อมูลสำเร็จ', `${data.scraped || data.total} เล่ม`);
+    console.log('✅ Scraped:', data);
   } catch(e) {
     console.error('Scrape error:', e);
-    alert('เกิดข้อผิดพลาด - ไม่สามารถดึงข้อมูลได้');
+    showToast('❌', 'Scrape ไม่สำเร็จ', 'ต้องรัน python scraper.py ก่อน');
   }
+  
   btn.classList.remove('loading');
   btn.innerHTML = '<span class="dot-live"></span> Scrape Now';
 }
 
-async function refreshFromAPI() {
+async function uploadToFirebase() {
+  console.log('📤 Uploading to Firebase...');
+  
   try {
-    const res = await fetch(`${API_BASE}/books`);
-    if (!res.ok) throw new Error();
-    const data = await res.json();
-    const oldOwned = {...state.owned};
-    state.books = data.books || [];
-    state.owned = data.owned || {};
-    Object.keys(oldOwned).forEach(k => { if (oldOwned[k]) state.owned[k] = true; });
+    await firebaseDB.ref('books').set(state.books);
+    await firebaseDB.ref('owned').set(state.owned);
+    await firebaseDB.ref('want').set(state.want);
+    console.log('✅ Uploaded to Firebase');
+  } catch(e) {
+    console.error('Upload error:', e);
+  }
+}
+
+async function refreshFromAPI() {
+  showToast('⏳', 'กำลังโหลดข้อมูล…', '');
+  
+  try {
+    // โหลดจาก Firebase
+    const booksSnap = await firebaseDB.ref('books').once('value');
+    const booksData = booksSnap.val();
+    
+    if (booksData && Array.isArray(booksData)) {
+      state.books = booksData;
+    } else if (booksData && typeof booksData === 'object') {
+      state.books = Object.values(booksData);
+    }
+    
+    const ownedSnap = await firebaseDB.ref('owned').once('value');
+    const wantSnap = await firebaseDB.ref('want').once('value');
+    
+    state.owned = ownedSnap.val() || {};
+    state.want = wantSnap.val() || {};
+    
     saveState();
     renderPubTabs();
     renderGrid();
+    showToast('✅', 'โหลดข้อมูลสำเร็จ', `${state.books.length} เล่ม`);
     console.log('✅ Refreshed:', state.books.length, 'books');
   } catch(e) {
     console.error('Refresh error:', e);
-    alert('ไม่สามารถโหลดข้อมูลได้ - ตรวจสอบว่า Server เปิดอยู่');
+    showToast('❌', 'ไม่สามารถโหลดได้', 'ตรวจสอบ Firebase');
   }
 }
 
 function exportExcel() {
-  fetch(`${API_BASE}/export`, {
+  fetch('http://localhost:5000/export', {
     method: 'POST', headers: {'Content-Type':'application/json'},
     body: JSON.stringify({ books: state.books, owned: state.owned })
   }).then(r => r.blob()).then(blob => {
@@ -1184,6 +1281,7 @@ function exportExcel() {
     });
     a.click();
     console.log('✅ Exported Excel');
+    showToast('✅', 'Export สำเร็จ', 'my_booklist.xlsx');
   }).catch(() => exportCSV());
 }
 
@@ -1198,6 +1296,7 @@ function exportCSV() {
   const a = document.createElement('a');
   a.href = url; a.download = 'my_booklist.csv'; a.click();
   console.log('✅ Exported CSV');
+  showToast('✅', 'Export CSV สำเร็จ', 'my_booklist.csv');
 }
 
 // ══════════════════════════════════════════════════

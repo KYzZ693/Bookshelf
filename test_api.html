@@ -11,8 +11,23 @@
   <pre id="output"></pre>
 
   <script>
-    const API_BASE = 'http://localhost:5000';
+    // Firebase Config
+const firebaseConfig = {
+  apiKey: "AIzaSyAUjHsRJ49ql1yf_0DnQR8irLw4-o7ROcY",
+  authDomain: "bookshelf-db-web.firebaseapp.com",
+  databaseURL: "https://bookshelf-db-web-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "bookshelf-db-web",
+  storageBucket: "bookshelf-db-web.firebasestorage.app",
+  messagingSenderId: "512948524981",
+  appId: "1:512948524981:web:e924c18cfdab98ccfeabfc",
+  measurementId: "G-K5K2XXYJKD"
+};
 
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// API_BASE ไม่ใช้แล้ว ใช้ Firebase แทน
     async function testAPI() {
       const output = document.getElementById('output');
       output.textContent = 'Loading...';

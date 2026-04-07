@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Upload to Firebase</title>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; }
+    button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    #status { margin-top: 1rem; padding: 1rem; background: #f0f0f0; border-radius: 8px; white-space: pre-wrap; }
+    input[type="file"] { margin: 1rem 0; }
+  </style>
+</head>
+<body>
+  <h1>📤 Upload db.json to Firebase</h1>
+  <p>เลือกไฟล์ db.json จากเครื่องคุณ</p>
+  
+  <input type="file" id="fileInput" accept=".json">
+  <br>
+  <button onclick="upload()">Upload Now</button>
+  
+  <pre id="status"></pre>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAUjHsRJ49ql1yf_0DnQR8irLw4-o7ROcY",
+      authDomain: "bookshelf-db-web.firebaseapp.com",
+      databaseURL: "https://bookshelf-db-web-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "bookshelf-db-web",
+      storageBucket: "bookshelf-db-web.firebasestorage.app",
+      messagingSenderId: "512948524981",
+      appId: "1:512948524981:web:e924c18cfdab98ccfeabfc"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    async function upload() {
+      const status = document.getElementById('status');
+      const fileInput = document.getElementById('fileInput');
+      
+      if (!fileInput.files[0]) {
+        status.textContent = '❌ Please select db.json file first!';
+        return;
+      }
+      
+      status.textContent = '📖 Loading file...';
+      
+      try {
+        const file = fileInput.files[0];
+        const text = await file.text();
+        const data = JSON.parse(text);
+        
+        status.textContent = `📚 Found ${data.books?.length || 0} books. Uploading...`;
+        
+        await db.ref('books').set(data.books || []);
+        status.textContent += '\n✅ Books uploaded!';
+        
+        await db.ref('owned').set(data.owned || {});
+        status.textContent += '\n✅ Owned uploaded!';
+        
+        await db.ref('want').set(data.want || {});
+        status.textContent += '\n✅ Want uploaded!';
+        
+        status.textContent += '\n\n🎉 Success! Check your Firebase console';
+      } catch(e) {
+        status.textContent = '❌ Error: ' + e.message;
+      }
+    }
+  </script>
+</body>
+</html>
