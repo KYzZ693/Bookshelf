@@ -109,21 +109,60 @@ nav {
 .pub-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
 /* ── TYPE TABS ── */
-.type-bar { padding: 1.25rem 2rem .75rem; display: flex; gap: 4px; align-items: center; }
-.type-tab { padding: 5px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; background: transparent; color: var(--text-muted); font-family: inherit; transition: all .15s; }
-.type-tab:hover { background: var(--surface2); color: var(--text); }
-.type-tab.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,.08); }
-.type-count { font-size: 11px; background: var(--surface2); color: var(--text-faint); padding: 1px 6px; border-radius: 20px; margin-left: 4px; font-weight: 400; }
-.type-tab.active .type-count { background: var(--border); color: var(--text-muted); }
+.type-bar {
+  padding: 1rem 2rem 0.5rem;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  position: relative;
+}
+
+.type-tab {
+  padding: 6px 14px;
+  border-radius: 50px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-family: inherit;
+  transition: all .15s;
+  white-space: nowrap;
+}
+
+.type-tab:hover {
+  background: var(--surface2);
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.type-tab.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  box-shadow: 0 1px 4px rgba(0,0,0,.08);
+}
+
+.type-count {
+  font-size: 11px;
+  background: rgba(255,255,255,.2);
+  color: inherit;
+  padding: 1px 6px;
+  border-radius: 20px;
+  margin-left: 4px;
+  font-weight: 400;
+}
 
 /* Hamburger Menu Button */
 .type-menu-btn {
   display: none;
-  padding: 6px 12px;
-  border-radius: 6px;
+  padding: 6px 14px;
+  border-radius: 50px;
   border: 1px solid var(--border);
   background: var(--surface);
-  color: var(--text);
+  color: var(--text-muted);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -132,38 +171,113 @@ nav {
   font-family: inherit;
   transition: all .15s;
 }
-.type-menu-btn:hover { background: var(--surface2); }
-.type-menu-btn svg { width: 16px; height: 16px; }
+
+.type-menu-btn:hover {
+  background: var(--surface2);
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.type-menu-btn svg {
+  width: 16px;
+  height: 16px;
+}
 
 /* Type Menu Dropdown */
 .type-menu {
   display: none;
   position: absolute;
   top: 100%;
-  left: 1rem;
-  right: 1rem;
+  left: 0;
+  right: 0;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  box-shadow: var(--shadow-hover);
+  box-shadow: 0 4px 16px rgba(0,0,0,.08);
   padding: 0.5rem;
-  z-index: 90;
+  z-index: 1000;
   margin-top: 8px;
+  animation: slideDown .2s ease;
 }
-.type-menu.open { display: block; }
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.type-menu.open {
+  display: block !important;
+}
+
 .type-menu .type-tab {
-  display: block;
+  display: flex !important;
+  justify-content: space-between;
+  align-items: center;
   width: 100%;
   text-align: left;
-  padding: 8px 12px;
-  margin: 2px 0;
+  padding: 10px 14px;
+  margin: 4px 0;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  border-radius: 50px;
 }
-.type-menu .type-tab.active { background: var(--accent-light); }
 
-.filter-row { margin-left: auto; display: flex; gap: 6px; align-items: center; }
-.filter-chip { padding: 4px 12px; border-radius: 50px; font-size: 12px; border: 1px solid var(--border); background: var(--surface); color: var(--text-muted); cursor: pointer; font-family: inherit; transition: all .15s; }
-.filter-chip:hover { border-color: var(--accent); color: var(--accent); }
-.filter-chip.active { background: var(--accent-light); border-color: var(--accent); color: var(--accent); }
+.type-menu .type-tab:hover {
+  background: var(--surface2);
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.type-menu .type-tab.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.type-menu .type-count {
+  background: rgba(255,255,255,.2);
+  color: inherit;
+  padding: 1px 6px;
+  border-radius: 20px;
+  margin-left: 4px;
+}
+
+.filter-row {
+  margin-left: auto;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.filter-chip {
+  padding: 6px 14px;
+  border-radius: 50px;
+  font-size: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all .15s;
+}
+
+.filter-chip:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.filter-chip.active {
+  background: var(--accent-light);
+  border-color: var(--accent);
+  color: var(--accent);
+}
 
 /* ── STATS STRIP ── */
 .stats-strip { padding: 0 2rem .5rem; display: flex; gap: 1.5rem; font-size: 12.5px; color: var(--text-muted); align-items: center; }
@@ -353,7 +467,8 @@ nav {
 .detail-modal {
   background: var(--surface);
   border-radius: 18px;
-  width: 100%; max-width: 620px;
+  width: 100%;
+  max-width: 650px;
   max-height: 92vh;
   box-shadow: 0 24px 80px rgba(0,0,0,.3);
   animation: fadeUp .2s both;
@@ -365,11 +480,40 @@ nav {
 
 /* ซ้าย: รูปปกเต็ม */
 .dm-cover {
-  width: 220px;
+  width: 240px;
   flex-shrink: 0;
   background: var(--surface2);
   position: relative;
   overflow: hidden;
+}
+.dm-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+  display: block;
+}
+.dm-cover-placeholder {
+  width: 100%;
+  height: 100%;
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 56px;
+  color: var(--border);
+}
+.dm-cover-type {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: 20px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  z-index: 2;
 }
 .dm-cover img {
   width: 100%; height: 100%;
@@ -432,11 +576,101 @@ nav {
 }
 .close-abs:hover { background: #fff; }
 
-/* mobile: stack vertically */
-@media (max-width: 520px) {
-  .detail-modal { flex-direction: column; max-width: 100%; }
-  .dm-cover { width: 100%; height: 240px; }
-  .dm-cover img { object-position: top; }
+/* Tablet & mobile: stack vertically with blur background */
+@media (max-width: 768px) {
+  .detail-modal {
+    flex-direction: column !important;
+    max-width: 95% !important;
+    max-height: 95vh !important;
+  }
+  
+  .dm-cover {
+    position: relative !important;
+    width: 100% !important;
+    height: 50vh !important;
+    min-height: 300px !important;
+    max-height: 400px !important;
+    flex-shrink: 0 !important;
+    overflow: hidden !important;
+  }
+  
+  /* Blur background layer */
+  .dm-cover::before {
+    content: '' !important;
+    position: absolute !important;
+    inset: -20px !important;
+    background-image: inherit !important;
+    background-size: cover !important;
+    background-position: center !important;
+    filter: blur(25px) brightness(0.6) !important;
+    transform: scale(1.1) !important;
+    z-index: 0 !important;
+  }
+  
+  .dm-cover img {
+    width: auto !important;
+    height: 100% !important;
+    max-height: 400px !important;
+    object-fit: contain !important;
+    object-position: center !important;
+    position: relative !important;
+    z-index: 1 !important;
+    display: block !important;
+    margin: 0 auto !important;
+  }
+  
+  .dm-body {
+    padding: 1.5rem 1.25rem !important;
+    flex: 1 !important;
+    overflow-y: auto !important;
+    background: var(--surface) !important;
+    border-radius: 24px 24px 0 0 !important;
+    margin-top: -24px !important;
+    position: relative !important;
+    z-index: 10 !important;
+  }
+  
+  .dm-type {
+    font-size: 10px !important;
+    margin-bottom: 6px !important;
+  }
+  
+  .dm-title {
+    font-size: 19px !important;
+    line-height: 1.4 !important;
+    margin-bottom: 0.75rem !important;
+    font-weight: 600 !important;
+  }
+  
+  .dm-author {
+    font-size: 13px !important;
+    margin-bottom: 1rem !important;
+    padding-bottom: 1rem !important;
+  }
+  
+  .dm-meta {
+    font-size: 13px !important;
+    margin-bottom: 1rem !important;
+  }
+  
+  .dm-price {
+    font-size: 24px !important;
+    margin: 1rem 0 !important;
+    font-weight: 700 !important;
+  }
+  
+  .dm-actions {
+    gap: 10px !important;
+    margin-top: 1.5rem !important;
+  }
+  
+  .btn-primary,
+  .btn-want,
+  .btn-outline {
+    padding: 14px !important;
+    font-size: 15px !important;
+    border-radius: 12px !important;
+  }
 }
 
 /* ── TOAST ── */
@@ -454,16 +688,33 @@ nav {
   /* Show hamburger menu on mobile */
   .type-menu-btn {
     display: flex;
-    margin-left: auto;
+    order: 1;
   }
   
   /* Hide type tabs on mobile, show in dropdown */
-  .type-bar .type-tab {
+  .type-bar .type-tab:not(.type-menu-btn) {
     display: none;
   }
   
+  /* Move filter row below hamburger */
   .type-bar .filter-row {
+    order: 2;
+    width: 100%;
+    margin-top: 8px;
     margin-left: 0;
+    justify-content: flex-start;
+  }
+  
+  /* Adjust type-bar padding */
+  .type-bar {
+    padding: 0.75rem 1rem 0.5rem;
+    gap: 8px;
+  }
+  
+  /* Menu full width on mobile */
+  .type-menu {
+    left: 0;
+    right: 0;
   }
 }
 @media (max-width: 768px) {
@@ -572,7 +823,8 @@ nav {
   }
   
   .dm-cover {
-    width: 120px !important;
+    width: 100% !important;
+    height: 280px !important;
   }
   
   .dm-title {
@@ -751,13 +1003,17 @@ nav {
 
 <!-- TYPE TABS + FILTERS -->
 <div class="type-bar">
-  <button class="type-menu-btn" onclick="toggleTypeMenu()">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M3 12h18M3 6h18M3 18h18"/>
+  <!-- Mobile: Hamburger Menu (order 1) -->
+  <button class="type-menu-btn" onclick="toggleTypeMenu()" aria-label="Toggle type menu">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
     </svg>
-    ประเภท
+    <span>ประเภท</span>
   </button>
   
+  <!-- Desktop: Type Tabs -->
   <button class="type-tab active" data-type="all" onclick="setType(this,'all')">ทั้งหมด <span class="type-count" id="cnt-all">0</span></button>
   <button class="type-tab" data-type="LN" onclick="setType(this,'LN')">Light Novel <span class="type-count" id="cnt-LN">0</span></button>
   <button class="type-tab" data-type="Novel" onclick="setType(this,'Novel')">Novel <span class="type-count" id="cnt-Novel">0</span></button>
@@ -766,12 +1022,13 @@ nav {
   <button class="type-tab" data-type="owned" onclick="setType(this,'owned')">มีแล้ว ✓ <span class="type-count" id="cnt-owned">0</span></button>
   <button class="type-tab" data-type="want" onclick="setType(this,'want')">อยากได้ 💛 <span class="type-count" id="cnt-want">0</span></button>
   
+  <!-- Filter Row (order 2 on mobile) -->
   <div class="filter-row">
-    <button class="filter-chip" id="sortPrice" onclick="toggleSort()">ราคา ↕</button>
-    <button class="filter-chip active" id="sortTitle" onclick="sortByTitle()">ชื่อ A→Z</button>
+    <button class="filter-chip" id="sortPrice" onclick="toggleSort()" style="white-space:nowrap">ราคา ↕</button>
+    <button class="filter-chip active" id="sortTitle" onclick="sortByTitle()" style="white-space:nowrap">ชื่อ A→Z</button>
   </div>
   
-  <!-- Mobile Type Menu -->
+  <!-- Mobile Type Menu Dropdown -->
   <div class="type-menu" id="typeMenu">
     <button class="type-tab active" data-type="all" onclick="setType(this,'all'); toggleTypeMenu()">ทั้งหมด <span class="type-count" id="m-cnt-all">0</span></button>
     <button class="type-tab" data-type="LN" onclick="setType(this,'LN'); toggleTypeMenu()">Light Novel <span class="type-count" id="m-cnt-LN">0</span></button>
@@ -1131,21 +1388,27 @@ function renderGrid() {
 
   // update counts
   const allB = state.publisher === 'all' ? state.books : state.books.filter(b => b.Publisher === state.publisher);
-  document.getElementById('cnt-all').textContent   = allB.length;
-  document.getElementById('cnt-LN').textContent    = allB.filter(b => b.Type === 'LN').length;
-  document.getElementById('cnt-Novel').textContent = allB.filter(b => b.Type === 'Novel').length;
-  document.getElementById('cnt-Manga').textContent = allB.filter(b => b.Type === 'Manga').length;
-  document.getElementById('cnt-Artbook').textContent = allB.filter(b => b.Type === 'Artbook').length;
-  document.getElementById('cnt-owned').textContent = allB.filter(b => state.owned[b.Link]).length;
-  document.getElementById('cnt-want').textContent  = allB.filter(b => state.want[b.Link]).length;
   
-  // Update mobile menu counts
-  const mIds = ['m-cnt-all', 'm-cnt-LN', 'm-cnt-Novel', 'm-cnt-Manga', 'm-cnt-Artbook', 'm-cnt-owned', 'm-cnt-want'];
-  const dIds = ['cnt-all', 'cnt-LN', 'cnt-Novel', 'cnt-Manga', 'cnt-Artbook', 'cnt-owned', 'cnt-want'];
-  mIds.forEach((mid, i) => {
-    const el = document.getElementById(mid);
-    const del = document.getElementById(dIds[i]);
-    if (el && del) el.textContent = del.textContent;
+  // Desktop counts
+  const counts = [
+    { id: 'cnt-all', value: allB.length },
+    { id: 'cnt-LN', value: allB.filter(b => b.Type === 'LN').length },
+    { id: 'cnt-Novel', value: allB.filter(b => b.Type === 'Novel').length },
+    { id: 'cnt-Manga', value: allB.filter(b => b.Type === 'Manga').length },
+    { id: 'cnt-Artbook', value: allB.filter(b => b.Type === 'Artbook').length },
+    { id: 'cnt-owned', value: allB.filter(b => state.owned[b.Link]).length },
+    { id: 'cnt-want', value: allB.filter(b => state.want[b.Link]).length }
+  ];
+  
+  counts.forEach(({ id, value }) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  });
+  
+  // Mobile menu counts (prefix with m-)
+  counts.forEach(({ id, value }) => {
+    const mobileEl = document.getElementById('m-' + id);
+    if (mobileEl) mobileEl.textContent = value;
   });
 
   const total = allB.length;
@@ -1402,37 +1665,14 @@ function toggleWant(link) {
 let _currentDetailBook = null;
 
 /**
- * smartFitImage — detect รูปว่า portrait/landscape/square
- * แล้วเลือก object-fit ให้พอดีอัตโนมัติ
- * portrait (ratio < 0.85)  → cover  (เต็ม frame)
- * square / landscape (≥ 0.85) → contain + bg blur
+ * smartFitImage — สำหรับ mobile ใช้รูปเป็นพื้นหลังเบลอ
  */
 function smartFitImage(imgEl, containerEl) {
   imgEl.onload = () => {
-    const ratio = imgEl.naturalWidth / imgEl.naturalHeight;
-    if (ratio < 0.85) {
-      // portrait — ปกหนังสือปกติ → cover เต็ม
-      imgEl.style.objectFit = 'cover';
-      containerEl.style.background = 'var(--surface2)';
-    } else {
-      // square หรือ landscape (เช่น box set) → contain + blur bg
-      imgEl.style.objectFit = 'contain';
-      imgEl.style.padding = '12px';
-      // blur backdrop จากรูปเดิม
-      containerEl.style.background = `var(--surface2)`;
-      containerEl.style.backgroundImage = `url('${imgEl.src}')`;
-      containerEl.style.backgroundSize = 'cover';
-      containerEl.style.backgroundPosition = 'center';
-      // overlay blur
-      if (!containerEl.querySelector('.blur-bg')) {
-        const blur = document.createElement('div');
-        blur.className = 'blur-bg';
-        blur.style.cssText = 'position:absolute;inset:0;backdrop-filter:blur(16px) brightness(.7);z-index:0';
-        containerEl.insertBefore(blur, containerEl.firstChild);
-        imgEl.style.position = 'relative';
-        imgEl.style.zIndex = '1';
-      }
-    }
+    // ตั้งค่ารูปเป็นพื้นหลังสำหรับ blur effect
+    containerEl.style.backgroundImage = `url('${imgEl.src}')`;
+    containerEl.style.backgroundSize = 'cover';
+    containerEl.style.backgroundPosition = 'center';
   };
 }
 
@@ -1557,15 +1797,34 @@ function setType(el, type) {
 
 function toggleTypeMenu() {
   const menu = document.getElementById('typeMenu');
-  menu.classList.toggle('open');
+  const btn = document.querySelector('.type-menu-btn');
+  
+  if (!menu) {
+    console.error('typeMenu element not found!');
+    return;
+  }
+  
+  const isOpen = menu.classList.toggle('open');
+  btn.setAttribute('aria-expanded', isOpen);
+  
+  console.log('Type menu:', isOpen ? 'OPEN' : 'CLOSED');
 }
 
 // Close menu when clicking outside
 document.addEventListener('click', (e) => {
   const menu = document.getElementById('typeMenu');
   const btn = document.querySelector('.type-menu-btn');
+  
   if (menu && !menu.contains(e.target) && !btn.contains(e.target)) {
     menu.classList.remove('open');
+  }
+});
+
+// Close menu on escape key
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    const menu = document.getElementById('typeMenu');
+    if (menu) menu.classList.remove('open');
   }
 });
 
