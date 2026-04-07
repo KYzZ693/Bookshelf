@@ -65,9 +65,46 @@ nav {
 .btn-icon:hover { background: var(--surface2); color: var(--text); }
 
 /* ── PUBLISHER TABS ── */
-.pub-strip { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 2rem; display: flex; gap: 8px; align-items: center; overflow-x: auto; scrollbar-width: none; height: 52px; }
-.pub-strip::-webkit-scrollbar { display: none; }
-.pub-tab { flex-shrink: 0; padding: 6px 16px; border-radius: 50px; font-size: 13px; font-weight: 500; cursor: pointer; border: 1.5px solid var(--border); background: transparent; color: var(--text-muted); font-family: inherit; transition: all .18s; white-space: nowrap; }
+.pub-strip {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) var(--surface);
+  height: 52px;
+  flex-shrink: 0;
+}
+.pub-strip::-webkit-scrollbar {
+  height: 6px;
+}
+.pub-strip::-webkit-scrollbar-track {
+  background: var(--surface);
+}
+.pub-strip::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+.pub-strip::-webkit-scrollbar-thumb:hover {
+  background: var(--text-faint);
+}
+.pub-tab {
+  flex-shrink: 0;
+  padding: 6px 16px;
+  border-radius: 50px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: inherit;
+  transition: all .18s;
+  white-space: nowrap;
+}
 .pub-tab:hover { border-color: var(--accent); color: var(--accent); }
 .pub-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
@@ -78,6 +115,51 @@ nav {
 .type-tab.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,.08); }
 .type-count { font-size: 11px; background: var(--surface2); color: var(--text-faint); padding: 1px 6px; border-radius: 20px; margin-left: 4px; font-weight: 400; }
 .type-tab.active .type-count { background: var(--border); color: var(--text-muted); }
+
+/* Hamburger Menu Button */
+.type-menu-btn {
+  display: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  gap: 6px;
+  align-items: center;
+  font-family: inherit;
+  transition: all .15s;
+}
+.type-menu-btn:hover { background: var(--surface2); }
+.type-menu-btn svg { width: 16px; height: 16px; }
+
+/* Type Menu Dropdown */
+.type-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 1rem;
+  right: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-hover);
+  padding: 0.5rem;
+  z-index: 90;
+  margin-top: 8px;
+}
+.type-menu.open { display: block; }
+.type-menu .type-tab {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  margin: 2px 0;
+}
+.type-menu .type-tab.active { background: var(--accent-light); }
+
 .filter-row { margin-left: auto; display: flex; gap: 6px; align-items: center; }
 .filter-chip { padding: 4px 12px; border-radius: 50px; font-size: 12px; border: 1px solid var(--border); background: var(--surface); color: var(--text-muted); cursor: pointer; font-family: inherit; transition: all .15s; }
 .filter-chip:hover { border-color: var(--accent); color: var(--accent); }
@@ -97,6 +179,13 @@ nav {
 .grid-wrap { padding: .5rem 2rem 3rem; }
 .section-label { font-size: 13px; font-weight: 500; color: var(--text-muted); margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; }
 .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* ── BOOK GRID (Default) ── */
+.book-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+}
 
 /* ── SERIES GRID ── */
 .series-grid {
@@ -361,6 +450,279 @@ nav {
 .series-card { animation: fadeUp .3s both; }
 
 /* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  /* Show hamburger menu on mobile */
+  .type-menu-btn {
+    display: flex;
+    margin-left: auto;
+  }
+  
+  /* Hide type tabs on mobile, show in dropdown */
+  .type-bar .type-tab {
+    display: none;
+  }
+  
+  .type-bar .filter-row {
+    margin-left: 0;
+  }
+}
+@media (max-width: 768px) {
+  /* Navbar */
+  nav {
+    padding: 0 1rem;
+    height: 52px;
+    gap: 0.5rem;
+  }
+  
+  .logo {
+    font-size: 18px;
+  }
+  
+  .search-wrap {
+    max-width: 200px;
+  }
+  
+  .nav-actions {
+    gap: 4px;
+  }
+  
+  .btn-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+  
+  /* Publisher Tabs */
+  .pub-strip {
+    padding: 0 1rem;
+    height: 44px;
+  }
+  
+  .pub-tab {
+    padding: 4px 12px;
+    font-size: 12px;
+  }
+  
+  /* Type Tabs */
+  .type-bar {
+    padding: 1rem 1rem 0.5rem;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  
+  .type-tab {
+    padding: 4px 10px;
+    font-size: 12px;
+  }
+  
+  .filter-row {
+    margin-left: 0;
+    width: 100%;
+    margin-top: 8px;
+    justify-content: flex-start;
+  }
+  
+  /* Stats Strip */
+  .stats-strip {
+    padding: 0.5rem 1rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    font-size: 11.5px;
+  }
+  
+  .progress-mini {
+    width: 60px;
+  }
+  
+  .scrape-btn {
+    margin-left: 0;
+    width: 100%;
+    justify-content: center;
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+  
+  /* Grid Wrap */
+  .grid-wrap {
+    padding: 0.5rem 1rem 2rem;
+  }
+  
+  /* Book Grid - 2 columns on mobile */
+  .book-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+  
+  /* Series Modal */
+  .series-modal {
+    width: 95% !important;
+    max-width: none !important;
+  }
+  
+  .sm-vol-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  
+  /* Detail Modal */
+  .detail-modal {
+    width: 95% !important;
+    max-width: none !important;
+    max-height: 95vh !important;
+    overflow-y: auto !important;
+  }
+  
+  .dm-cover {
+    width: 120px !important;
+  }
+  
+  .dm-title {
+    font-size: 16px !important;
+  }
+  
+  /* Toast */
+  #toast {
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 90% !important;
+    max-width: none !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Extra small devices */
+  nav {
+    height: 48px;
+  }
+  
+  .logo {
+    font-size: 16px;
+  }
+  
+  .search-wrap {
+    max-width: 150px;
+  }
+  
+  .search-input {
+    padding: 6px 12px 6px 32px;
+    font-size: 12.5px;
+  }
+  
+  .nav-actions {
+    gap: 2px;
+  }
+  
+  .btn-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
+  }
+  
+  /* Hide some tabs on very small screens */
+  .type-count {
+    display: none;
+  }
+  
+  /* Book Grid - 2 columns with smaller gap */
+  .book-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+  
+  .book-card {
+    border-radius: 8px !important;
+  }
+  
+  .book-title {
+    font-size: 11px !important;
+    line-height: 1.3 !important;
+    -webkit-line-clamp: 2 !important;
+  }
+  
+  .book-price {
+    font-size: 11px !important;
+  }
+  
+  .own-toggle,
+  .want-toggle {
+    font-size: 10px !important;
+    padding: 4px !important;
+  }
+  
+  /* Modal adjustments */
+  .dm-cover {
+    width: 100px !important;
+  }
+  
+  .dm-body {
+    padding: 1rem !important;
+  }
+  
+  .dm-title {
+    font-size: 15px !important;
+  }
+  
+  .dm-meta {
+    font-size: 12px !important;
+  }
+  
+  .btn-primary,
+  .btn-want {
+    padding: 8px !important;
+    font-size: 12px !important;
+  }
+}
+
+/* Tablet */
+@media (min-width: 769px) and (max-width: 1024px) {
+  nav {
+    padding: 0 1.5rem;
+  }
+  
+  .search-wrap {
+    max-width: 280px;
+  }
+  
+  .pub-strip {
+    padding: 0 1.5rem;
+  }
+  
+  .type-bar {
+    padding: 1.25rem 1.5rem 0.75rem;
+  }
+  
+  .grid-wrap {
+    padding: 0.5rem 1.5rem 2rem;
+  }
+  
+  .book-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
+  }
+}
+
+/* Hide scrollbar but keep functionality */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) var(--surface2);
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--surface2);
+  border-radius: 3px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--text-faint);
+}
 @media (max-width: 640px) {
   nav, .pub-strip, .type-bar, .stats-strip, .grid-wrap { padding-left: 1rem; padding-right: 1rem; }
   .series-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
@@ -389,6 +751,13 @@ nav {
 
 <!-- TYPE TABS + FILTERS -->
 <div class="type-bar">
+  <button class="type-menu-btn" onclick="toggleTypeMenu()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M3 12h18M3 6h18M3 18h18"/>
+    </svg>
+    ประเภท
+  </button>
+  
   <button class="type-tab active" data-type="all" onclick="setType(this,'all')">ทั้งหมด <span class="type-count" id="cnt-all">0</span></button>
   <button class="type-tab" data-type="LN" onclick="setType(this,'LN')">Light Novel <span class="type-count" id="cnt-LN">0</span></button>
   <button class="type-tab" data-type="Novel" onclick="setType(this,'Novel')">Novel <span class="type-count" id="cnt-Novel">0</span></button>
@@ -396,9 +765,21 @@ nav {
   <button class="type-tab" data-type="Artbook" onclick="setType(this,'Artbook')">Artbook <span class="type-count" id="cnt-Artbook">0</span></button>
   <button class="type-tab" data-type="owned" onclick="setType(this,'owned')">มีแล้ว ✓ <span class="type-count" id="cnt-owned">0</span></button>
   <button class="type-tab" data-type="want" onclick="setType(this,'want')">อยากได้ 💛 <span class="type-count" id="cnt-want">0</span></button>
+  
   <div class="filter-row">
     <button class="filter-chip" id="sortPrice" onclick="toggleSort()">ราคา ↕</button>
     <button class="filter-chip active" id="sortTitle" onclick="sortByTitle()">ชื่อ A→Z</button>
+  </div>
+  
+  <!-- Mobile Type Menu -->
+  <div class="type-menu" id="typeMenu">
+    <button class="type-tab active" data-type="all" onclick="setType(this,'all'); toggleTypeMenu()">ทั้งหมด <span class="type-count" id="m-cnt-all">0</span></button>
+    <button class="type-tab" data-type="LN" onclick="setType(this,'LN'); toggleTypeMenu()">Light Novel <span class="type-count" id="m-cnt-LN">0</span></button>
+    <button class="type-tab" data-type="Novel" onclick="setType(this,'Novel'); toggleTypeMenu()">Novel <span class="type-count" id="m-cnt-Novel">0</span></button>
+    <button class="type-tab" data-type="Manga" onclick="setType(this,'Manga'); toggleTypeMenu()">Manga <span class="type-count" id="m-cnt-Manga">0</span></button>
+    <button class="type-tab" data-type="Artbook" onclick="setType(this,'Artbook'); toggleTypeMenu()">Artbook <span class="type-count" id="m-cnt-Artbook">0</span></button>
+    <button class="type-tab" data-type="owned" onclick="setType(this,'owned'); toggleTypeMenu()">มีแล้ว ✓ <span class="type-count" id="m-cnt-owned">0</span></button>
+    <button class="type-tab" data-type="want" onclick="setType(this,'want'); toggleTypeMenu()">อยากได้ 💛 <span class="type-count" id="m-cnt-want">0</span></button>
   </div>
 </div>
 
@@ -757,6 +1138,15 @@ function renderGrid() {
   document.getElementById('cnt-Artbook').textContent = allB.filter(b => b.Type === 'Artbook').length;
   document.getElementById('cnt-owned').textContent = allB.filter(b => state.owned[b.Link]).length;
   document.getElementById('cnt-want').textContent  = allB.filter(b => state.want[b.Link]).length;
+  
+  // Update mobile menu counts
+  const mIds = ['m-cnt-all', 'm-cnt-LN', 'm-cnt-Novel', 'm-cnt-Manga', 'm-cnt-Artbook', 'm-cnt-owned', 'm-cnt-want'];
+  const dIds = ['cnt-all', 'cnt-LN', 'cnt-Novel', 'cnt-Manga', 'cnt-Artbook', 'cnt-owned', 'cnt-want'];
+  mIds.forEach((mid, i) => {
+    const el = document.getElementById(mid);
+    const del = document.getElementById(dIds[i]);
+    if (el && del) el.textContent = del.textContent;
+  });
 
   const total = allB.length;
   const owned = allB.filter(b => state.owned[b.Link]).length;
@@ -1164,6 +1554,20 @@ function setType(el, type) {
   state.type = type;
   renderGrid();
 }
+
+function toggleTypeMenu() {
+  const menu = document.getElementById('typeMenu');
+  menu.classList.toggle('open');
+}
+
+// Close menu when clicking outside
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('typeMenu');
+  const btn = document.querySelector('.type-menu-btn');
+  if (menu && !menu.contains(e.target) && !btn.contains(e.target)) {
+    menu.classList.remove('open');
+  }
+});
 
 function toggleSort() {
   state.sort = state.sort === 'price' ? 'title' : 'price';
