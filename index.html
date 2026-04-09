@@ -1152,11 +1152,18 @@ let state = {
 // ══ LOAD ══
 async function loadState() {
   console.log('[loadState] Starting...');
+  console.log('[loadState] Firebase initialized:', typeof firebase !== 'undefined');
+  console.log('[loadState] firebaseDB:', typeof firebaseDB !== 'undefined');
 
   try {
     // โหลด books จาก Firebase
+    console.log('[loadState] Fetching books from Firebase...');
     const booksSnap = await firebaseDB.ref('books').once('value');
     const booksData = booksSnap.val();
+    
+    console.log('[loadState] Books snapshot exists:', booksSnap.exists());
+    console.log('[loadState] Books data type:', typeof booksData);
+    console.log('[loadState] Books data:', booksData ? 'found' : 'null');
     
     if (booksData && Array.isArray(booksData)) {
       state.books = booksData;
@@ -1167,35 +1174,96 @@ async function loadState() {
     } else {
       state.books = [];
       console.warn('⚠️ No books in Firebase');
+      console.log('[loadState] Trying localStorage fallback...');
+      
+      // Fallback to localStorage
+      const localBooks = localStorage.getItem(DB_KEY);
+      if (localBooks) {
+        state.books = JSON.parse(localBooks);
+        console.log(`✅ localStorage: ${state.books.length} books`);
+      }
     }
     
     // โหลด owned/want จาก Firebase
+    console.log('[loadState] Fetching owned/want from Firebase...');
     const ownedSnap = await firebaseDB.ref('owned').once('value');
     const wantSnap = await firebaseDB.ref('want').once('value');
     
-    state.owned = ownedSnap.val() || {};
-    state.want = wantSnap.val() || {};
+    const ownedData = ownedSnap.val() || {};
+    const wantData = wantSnap.val() || {};
+    
+    console.log('[loadState] Raw owned data:', ownedData);
+    console.log('[loadState] Raw want data:', wantData);
+    
+    // deserialize Base64 encoded keys (ใช้ atob แปลงกลับ)
+    state.owned = {};
+    state.want = {};
+    
+    Object.keys(ownedData).forEach(encodedKey => {
+      // แปลง Base64 กลับเป็น URL เดิม
+      try {
+        const originalKey = atob(encodedKey);
+        state.owned[originalKey] = ownedData[encodedKey];
+      } catch(e) {
+        console.warn('[loadState] Failed to decode key:', encodedKey, e.message);
+        state.owned[encodedKey] = ownedData[encodedKey];
+      }
+    });
+    
+    Object.keys(wantData).forEach(encodedKey => {
+      // แปลง Base64 กลับเป็น URL เดิม
+      try {
+        const originalKey = atob(encodedKey);
+        state.want[originalKey] = wantData[encodedKey];
+      } catch(e) {
+        console.warn('[loadState] Failed to decode key:', encodedKey, e.message);
+        state.want[encodedKey] = wantData[encodedKey];
+      }
+    });
     
     console.log(`✅ Owned: ${Object.keys(state.owned).length} items`);
     console.log(`✅ Want: ${Object.keys(state.want).length} items`);
     
+    // Debug: แสดงตัวอย่าง keys
+    if (Object.keys(state.owned).length > 0) {
+      console.log('Owned sample keys:', Object.keys(state.owned).slice(0, 3));
+    }
+    if (Object.keys(state.want).length > 0) {
+      console.log('Want sample keys:', Object.keys(state.want).slice(0, 3));
+    }
+    
   } catch(e) {
-    console.error('[loadState] Firebase error:', e.message);
+    console.error('[loadState] Error:', e.message);
+    console.error('[loadState] Stack:', e.stack);
+    state.books = [];
+    state.owned = {};
+    state.want = {};
     
     // Fallback to localStorage
+    console.log('[loadState] Trying localStorage fallback...');
     try {
-      const r = localStorage.getItem(DB_KEY);
-      if (r) state.books = JSON.parse(r);
-      const o = localStorage.getItem(OWN_KEY);
-      if (o) state.owned = JSON.parse(o);
-      const w = localStorage.getItem(WANT_KEY);
-      if (w) state.want = JSON.parse(w);
-      console.log(`📦 localStorage: ${state.books.length} books`);
-    } catch {}
+      const localBooks = localStorage.getItem(DB_KEY);
+      const localOwned = localStorage.getItem(OWN_KEY);
+      const localWant = localStorage.getItem(WANT_KEY);
+      
+      if (localBooks) state.books = JSON.parse(localBooks);
+      if (localOwned) state.owned = JSON.parse(localOwned);
+      if (localWant) state.want = JSON.parse(localWant);
+      
+      console.log(`✅ localStorage fallback: ${state.books.length} books`);
+    } catch(e2) {
+      console.error('[loadState] localStorage fallback failed:', e2.message);
+    }
   }
+  
+  console.log('[loadState] Done, total books:', state.books.length);
+  console.log('[loadState] Calling renderPubTabs and renderGrid...');
+  renderPubTabs();
+  renderGrid();
+  console.log('[loadState] Complete!');
 }
 
-function saveState() {
+async function saveState() {
   if (typeof state === 'undefined') {
     console.warn('[saveState] state not initialized yet');
     return;
@@ -1208,17 +1276,37 @@ function saveState() {
   }
   
   try {
-    // บันทึกขึ้น Firebase
-    firebaseDB.ref('books').set(state.books);
-    firebaseDB.ref('owned').set(state.owned);
-    firebaseDB.ref('want').set(state.want);
+    // Encode URL ด้วย btoa (Base64) - Firebase รับรองว่าโอเค
+    const sanitizeKey = (key) => btoa(key);
+    const sanitizedOwned = {};
+    const sanitizedWant = {};
     
-    // Backup ใน localStorage ด้วย
+    Object.keys(state.owned).forEach(key => {
+      sanitizedOwned[sanitizeKey(key)] = state.owned[key];
+    });
+    
+    Object.keys(state.want).forEach(key => {
+      sanitizedWant[sanitizeKey(key)] = state.want[key];
+    });
+    
+    console.log('[saveState] Sanitized owned keys (first 3):', Object.keys(sanitizedOwned).slice(0, 3));
+    console.log('[saveState] Sanitized want keys (first 3):', Object.keys(sanitizedWant).slice(0, 3));
+    
+    // บันทึกขึ้น Firebase (await ให้เขียนเสร็จก่อน)
+    await Promise.all([
+      firebaseDB.ref('books').set(state.books),
+      firebaseDB.ref('owned').set(sanitizedOwned),
+      firebaseDB.ref('want').set(sanitizedWant)
+    ]);
+    
+    // Backup ใน localStorage ด้วย (ใช้ key เดิม)
     localStorage.setItem(DB_KEY, JSON.stringify(state.books));
     localStorage.setItem(OWN_KEY, JSON.stringify(state.owned));
     localStorage.setItem(WANT_KEY, JSON.stringify(state.want));
     
     console.log('💾 Saved to Firebase & localStorage:', state.books.length, 'books');
+    console.log('Owned keys:', Object.keys(state.owned).length);
+    console.log('Want keys:', Object.keys(state.want).length);
   } catch(e) {
     console.error('[saveState] Error:', e.message);
   }
@@ -1593,7 +1681,7 @@ function bookCardHtml(b, setLabel) {
   </div>`;
 }
 
-function toggleWantSeries() {
+async function toggleWantSeries() {
   const g = window._groups[_currentGroupIdx];
   if (!g) return;
   
@@ -1610,7 +1698,7 @@ function toggleWantSeries() {
     allLinks.forEach(link => state.want[link] = true);
   }
   
-  saveState();
+  await saveState();
   openSeriesModal(_currentGroupIdx);
   renderGrid();
 }
@@ -1621,7 +1709,12 @@ function closeSeriesModal() {
   _currentGroupIdx = null;
 }
 
-function toggleOwnSeries() {
+function closeDetailModal() {
+  document.getElementById('detailModalBg').classList.remove('open');
+  _currentDetailBook = null;
+}
+
+async function toggleOwnSeries() {
   const g = window._groups[_currentGroupIdx];
   if (!g) return;
   
@@ -1638,18 +1731,18 @@ function toggleOwnSeries() {
     allLinks.forEach(link => state.owned[link] = true);
   }
   
-  saveState();
+  await saveState();
   openSeriesModal(_currentGroupIdx);
   renderGrid();
 }
 
-function toggleWant(link) {
+async function toggleWant(link) {
   if (state.want[link]) {
     delete state.want[link];
   } else {
     state.want[link] = true;
   }
-  saveState();
+  await saveState();
   renderGrid();
   if (_currentGroupIdx !== null) openSeriesModal(_currentGroupIdx);
 }
@@ -1729,21 +1822,21 @@ function updateDetailOwnBtn() {
   btn.className    = 'btn-primary' + (isOwned ? ' owned-btn' : '');
 }
 
-function toggleOwnDetail() {
+async function toggleOwnDetail() {
   if (!_currentDetailBook) return;
-  toggleOwn(_currentDetailBook.Link);
+  await toggleOwn(_currentDetailBook.Link);
   updateDetailOwnBtn();
   updateDetailWantBtn();
 }
 
-function toggleWantDetail() {
+async function toggleWantDetail() {
   if (!_currentDetailBook) return;
   if (state.want[_currentDetailBook.Link]) {
     delete state.want[_currentDetailBook.Link];
   } else {
     state.want[_currentDetailBook.Link] = true;
   }
-  saveState();
+  await saveState();
   updateDetailWantBtn();
   renderGrid();
   if (_currentGroupIdx !== null) openSeriesModal(_currentGroupIdx);
@@ -1763,18 +1856,13 @@ function updateDetailWantBtn() {
   }
 }
 
-function closeDetailModal() {
-  document.getElementById('detailModalBg').classList.remove('open');
-  _currentDetailBook = null;
-}
-
 // ══════════════════════════════════════════════════
 // OWNED TOGGLE
 // ══════════════════════════════════════════════════
-function toggleOwn(link) {
+async function toggleOwn(link) {
   if (state.owned[link]) delete state.owned[link];
   else state.owned[link] = true;
-  saveState();
+  await saveState();
 
   // refresh series modal body ถ้าเปิดอยู่
   if (_currentGroupIdx !== null) {
