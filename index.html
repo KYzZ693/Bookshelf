@@ -479,58 +479,54 @@ nav {
   overflow: hidden;
 }
 
-/* ซ้าย: รูปปกเต็ม */
+/* ซ้าย: รูปปกเต็ม + พื้นหลังเบลอ */
 .dm-cover {
   width: 240px;
   flex-shrink: 0;
   background: var(--surface2);
   position: relative;
   overflow: hidden;
-}
-.dm-cover img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: top;
-  display: block;
-}
-.dm-cover-placeholder {
-  width: 100%;
-  height: 100%;
-  min-height: 400px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 56px;
-  color: var(--border);
 }
-.dm-cover-type {
+/* Blurred background layer (desktop + mobile) */
+.dm-cover::before {
+  content: '';
   position: absolute;
-  top: 8px;
-  left: 8px;
-  font-size: 10px;
-  font-weight: 700;
-  padding: 3px 7px;
-  border-radius: 20px;
-  letter-spacing: .04em;
-  text-transform: uppercase;
-  z-index: 2;
+  inset: -20px;
+  background-image: inherit;
+  background-size: cover;
+  background-position: center;
+  filter: blur(20px) brightness(0.7) saturate(1.2);
+  transform: scale(1.15);
+  z-index: 0;
 }
 .dm-cover img {
-  width: 100%; height: 100%;
-  object-fit: cover;
-  display: block;
-}
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+    object-position: center !important;
+    display: block !important;
+    position: relative !important;
+    z-index: 1 !important;
+    padding: 16px !important;
+    margin: 0 !important;
+  }
 .dm-cover-placeholder {
   width: 100%; height: 100%;
   min-height: 320px;
   display: flex; align-items: center; justify-content: center;
   font-size: 56px; color: var(--border);
+  position: relative;
+  z-index: 1;
 }
 .dm-cover-type {
-  position: absolute; bottom: 12px; left: 12px;
+  position: absolute; top: 8px; left: 8px;
   font-size: 10px; font-weight: 700; padding: 3px 9px;
   border-radius: 20px; letter-spacing: .05em;
+  text-transform: uppercase;
+  z-index: 2;
 }
 
 /* ขวา: info scroll */
@@ -593,6 +589,9 @@ nav {
     max-height: 400px !important;
     flex-shrink: 0 !important;
     overflow: hidden !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
   
   /* Blur background layer */
@@ -603,21 +602,21 @@ nav {
     background-image: inherit !important;
     background-size: cover !important;
     background-position: center !important;
-    filter: blur(25px) brightness(0.6) !important;
-    transform: scale(1.1) !important;
+    filter: blur(25px) brightness(0.6) saturate(1.2) !important;
+    transform: scale(1.15) !important;
     z-index: 0 !important;
   }
   
   .dm-cover img {
-    width: auto !important;
+    width: 100% !important;
     height: 100% !important;
-    max-height: 400px !important;
     object-fit: contain !important;
     object-position: center !important;
+    display: block !important;
     position: relative !important;
     z-index: 1 !important;
-    display: block !important;
-    margin: 0 auto !important;
+    padding: 16px !important;
+    margin: 0 !important;
   }
   
   .dm-body {
@@ -826,6 +825,21 @@ nav {
   .dm-cover {
     width: 100% !important;
     height: 280px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  
+  .dm-cover img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+    object-position: center !important;
+    display: block !important;
+    position: relative !important;
+    z-index: 1 !important;
+    padding: 16px !important;
+    margin: 0 !important;
   }
   
   .dm-title {
@@ -903,7 +917,23 @@ nav {
   
   /* Modal adjustments */
   .dm-cover {
-    width: 100px !important;
+    width: 100% !important;
+    height: 240px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  
+  .dm-cover img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+    object-position: center !important;
+    display: block !important;
+    position: relative !important;
+    z-index: 1 !important;
+    padding: 16px !important;
+    margin: 0 !important;
   }
   
   .dm-body {
@@ -2025,7 +2055,7 @@ function openDetailModal(book) {
     cover.innerHTML = `
       <img src="${book.Image}" alt="${book.Title}"
            onerror="this.parentElement.innerHTML='<div class=dm-cover-placeholder>📖</div>'">
-      <div class="dm-cover-type ${pillClass}" style="position:relative;z-index:2">${pillLabel}</div>`;
+      <div class="dm-cover-type ${pillClass}">${pillLabel}</div>`;
     smartFitImage(cover.querySelector('img'), cover);
   } else {
     cover.innerHTML = `
@@ -2194,14 +2224,20 @@ async function scrapeNow() {
     // ต้องรัน python scraper.py ในเครื่องเท่านั้น
     const res = await fetch('http://localhost:5000/scrape', {
       method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ publishers: ["PhoenixNext"] })
+      body: JSON.stringify({})
     });
     
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     
+    if (data.books && data.books.length > 0) {
+      state.books = data.books;
+    }
+    
     // อัพโหลดขึ้น Firebase อัตโนมัติ
     await uploadToFirebase();
+    renderPubTabs();
+    renderGrid();
     
     showToast('✅', 'ดึงข้อมูลสำเร็จ', `${data.scraped || data.total} เล่ม`);
     console.log('✅ Scraped:', data);
