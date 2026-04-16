@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
 </head>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -981,9 +982,183 @@ nav {
   .search-wrap { max-width: 180px; }
   .sm-vol-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
 }
+
+/* ── AUTH ── */
+.auth-login-screen {
+  position: fixed; inset: 0;
+  background: var(--bg);
+  z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column;
+  gap: 0;
+}
+.auth-login-screen.hidden { display: none; }
+.auth-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 360px;
+  text-align: center;
+  box-shadow: var(--shadow-hover);
+}
+.auth-logo {
+  font-family: 'DM Serif Display', serif;
+  font-size: 28px;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.auth-logo span { color: var(--accent); }
+.auth-subtitle {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+}
+.btn-google {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; padding: 11px 20px;
+  border-radius: 50px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  font-size: 14px; font-weight: 600; font-family: inherit;
+  color: var(--text);
+  cursor: pointer;
+  transition: all .18s;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+.btn-google:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,.1); }
+.btn-google svg { flex-shrink: 0; }
+.auth-divider { display: flex; align-items: center; gap: 10px; margin: 1rem 0; color: var(--text-faint); font-size: 12px; }
+.auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.btn-email-auth {
+  width: 100%; padding: 10px 20px;
+  border-radius: 50px;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  font-size: 13.5px; font-weight: 500; font-family: inherit;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all .18s;
+}
+.btn-email-auth:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Email auth form */
+.email-form { display: none; margin-top: 1rem; text-align: left; }
+.email-form.show { display: block; }
+.auth-input {
+  width: 100%; padding: 10px 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border);
+  background: var(--surface2);
+  font-size: 13.5px; font-family: inherit; color: var(--text);
+  outline: none; margin-bottom: 8px;
+  transition: border-color .2s;
+}
+.auth-input:focus { border-color: var(--accent); background: var(--surface); }
+.btn-auth-submit {
+  width: 100%; padding: 10px;
+  border-radius: 50px;
+  border: none;
+  background: var(--accent);
+  color: #fff; font-size: 13.5px; font-weight: 600; font-family: inherit;
+  cursor: pointer;
+  transition: opacity .15s;
+  margin-top: 4px;
+}
+.btn-auth-submit:hover { opacity: .88; }
+.auth-toggle { font-size: 12.5px; color: var(--text-muted); margin-top: 10px; cursor: pointer; }
+.auth-toggle span { color: var(--accent); font-weight: 600; text-decoration: underline; cursor: pointer; }
+.auth-error { font-size: 12px; color: #c0392b; margin-top: 6px; min-height: 18px; }
+
+/* User avatar in navbar */
+.nav-user {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 12px 4px 4px;
+  border-radius: 50px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  cursor: pointer;
+  transition: all .15s;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  font-family: inherit;
+}
+.nav-user:hover { border-color: var(--accent); color: var(--text); }
+.nav-avatar {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid var(--border);
+}
+.nav-avatar-placeholder {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: var(--accent-light);
+  color: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+}
+.nav-user-name { max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* User menu dropdown */
+.user-menu-wrap { position: relative; }
+.user-dropdown {
+  display: none;
+  position: absolute; top: calc(100% + 8px); right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-hover);
+  min-width: 180px;
+  z-index: 500;
+  overflow: hidden;
+  animation: slideDown .18s ease;
+}
+.user-dropdown.open { display: block; }
+.user-dropdown-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px;
+  font-size: 13px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background .12s;
+  border: none; background: none; width: 100%; text-align: left; font-family: inherit;
+}
+.user-dropdown-item:hover { background: var(--surface2); color: var(--text); }
+.user-dropdown-item.danger:hover { background: #fdf2f2; color: #c0392b; }
+.user-dropdown-divider { height: 1px; background: var(--border); margin: 4px 0; }
+.user-info-row { padding: 12px 16px 8px; border-bottom: 1px solid var(--border); }
+.user-info-email { font-size: 11.5px; color: var(--text-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.user-info-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
 </style>
 </head>
 <body>
+
+<!-- LOGIN SCREEN -->
+<div class="auth-login-screen" id="authLoginScreen">
+  <div class="auth-card">
+    <div class="auth-logo">Book<span>Shelf</span></div>
+    <div class="auth-subtitle">เข้าสู่ระบบเพื่อจัดการคอลเลคชันของคุณ</div>
+
+    <button class="btn-google" onclick="signInWithGoogle()">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.2l6.7-6.7C35.7 2.5 30.2 0 24 0 14.8 0 7 5.4 3.2 13.3l7.8 6C13 14.6 18 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17z"/><path fill="#FBBC05" d="M11 28.3c-.5-1.5-.8-3-.8-4.8s.3-3.3.8-4.8l-7.8-6C1.2 16 0 19.9 0 24s1.2 8 3.2 11.3l7.8-6z"/><path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.5-5.8c-2 1.4-4.6 2.2-7.7 2.2-5.9 0-11-4-12.8-9.5l-7.8 6C7 42.6 14.9 48 24 48z"/></svg>
+      เข้าสู่ระบบด้วย Google
+    </button>
+
+    <div class="auth-divider">หรือ</div>
+
+    <button class="btn-email-auth" onclick="toggleEmailForm()">📧 เข้าสู่ระบบด้วย Email</button>
+
+    <div class="email-form" id="emailForm">
+      <input class="auth-input" id="authEmail" type="email" placeholder="อีเมล">
+      <input class="auth-input" id="authPassword" type="password" placeholder="รหัสผ่าน">
+      <button class="btn-auth-submit" id="authSubmitBtn" onclick="submitEmailAuth()">เข้าสู่ระบบ</button>
+      <div class="auth-toggle">ยังไม่มีบัญชี? <span onclick="switchAuthMode()">สมัครสมาชิก</span></div>
+      <div class="auth-error" id="authError"></div>
+    </div>
+  </div>
+</div>
 
 <!-- NAVBAR -->
 <nav>
@@ -995,6 +1170,23 @@ nav {
   <div class="nav-actions">
     <button class="btn-icon" onclick="refreshFromAPI()" title="Refresh">⟳</button>
     <button class="btn-icon" onclick="exportExcel()" title="Export">↓</button>
+    <div class="user-menu-wrap" id="userMenuWrap">
+      <button class="nav-user" id="navUserBtn" onclick="toggleUserMenu()">
+        <div class="nav-avatar-placeholder" id="navAvatarPlaceholder">?</div>
+        <img class="nav-avatar" id="navAvatar" style="display:none" src="" alt="">
+        <span class="nav-user-name" id="navUserName">กำลังโหลด…</span>
+      </button>
+      <div class="user-dropdown" id="userDropdown">
+        <div class="user-info-row">
+          <div class="user-info-name" id="dropdownUserName"></div>
+          <div class="user-info-email" id="dropdownUserEmail"></div>
+        </div>
+        <button class="user-dropdown-item danger" onclick="signOutUser()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          ออกจากระบบ
+        </button>
+      </div>
+    </div>
   </div>
 </nav>
 
@@ -1137,6 +1329,123 @@ const firebaseConfig = {
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const firebaseDB = firebase.database();
+const firebaseAuth = firebase.auth();
+
+// ── AUTH STATE ──
+let currentUser = null;
+let _authEmailMode = 'login'; // 'login' | 'register'
+
+// helper: returns Firebase ref path scoped to current user
+function userRef(path) {
+  if (!currentUser) throw new Error('Not authenticated');
+  return firebaseDB.ref(`users/${currentUser.uid}/${path}`);
+}
+
+// ── AUTH UI ──
+function toggleEmailForm() {
+  const form = document.getElementById('emailForm');
+  form.classList.toggle('show');
+}
+
+function switchAuthMode() {
+  _authEmailMode = _authEmailMode === 'login' ? 'register' : 'login';
+  document.getElementById('authSubmitBtn').textContent =
+    _authEmailMode === 'login' ? 'เข้าสู่ระบบ' : 'สมัครสมาชิก';
+  document.querySelector('#emailForm .auth-toggle span').textContent =
+    _authEmailMode === 'login' ? 'สมัครสมาชิก' : 'เข้าสู่ระบบแทน';
+  document.querySelector('#emailForm .auth-toggle').firstChild.textContent =
+    _authEmailMode === 'login' ? 'ยังไม่มีบัญชี? ' : 'มีบัญชีแล้ว? ';
+  document.getElementById('authError').textContent = '';
+}
+
+async function submitEmailAuth() {
+  const email = document.getElementById('authEmail').value.trim();
+  const pw = document.getElementById('authPassword').value;
+  const errEl = document.getElementById('authError');
+  errEl.textContent = '';
+  if (!email || !pw) { errEl.textContent = 'กรุณากรอกอีเมลและรหัสผ่าน'; return; }
+  try {
+    if (_authEmailMode === 'login') {
+      await firebaseAuth.signInWithEmailAndPassword(email, pw);
+    } else {
+      await firebaseAuth.createUserWithEmailAndPassword(email, pw);
+    }
+  } catch(e) {
+    const msgs = {
+      'auth/user-not-found': 'ไม่พบบัญชีนี้',
+      'auth/wrong-password': 'รหัสผ่านไม่ถูกต้อง',
+      'auth/email-already-in-use': 'อีเมลนี้ถูกใช้แล้ว',
+      'auth/weak-password': 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร',
+      'auth/invalid-email': 'รูปแบบอีเมลไม่ถูกต้อง',
+    };
+    errEl.textContent = msgs[e.code] || e.message;
+  }
+}
+
+async function signInWithGoogle() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  try {
+    await firebaseAuth.signInWithPopup(provider);
+  } catch(e) {
+    document.getElementById('authError').textContent = e.message;
+  }
+}
+
+async function signOutUser() {
+  closeUserMenu();
+  await firebaseAuth.signOut();
+}
+
+function toggleUserMenu() {
+  document.getElementById('userDropdown').classList.toggle('open');
+}
+function closeUserMenu() {
+  document.getElementById('userDropdown').classList.remove('open');
+}
+
+// Close user menu on outside click
+document.addEventListener('click', (e) => {
+  const wrap = document.getElementById('userMenuWrap');
+  if (wrap && !wrap.contains(e.target)) closeUserMenu();
+});
+
+// ── AUTH STATE OBSERVER ──
+firebaseAuth.onAuthStateChanged(async (user) => {
+  currentUser = user;
+  const loginScreen = document.getElementById('authLoginScreen');
+
+  if (user) {
+    // Hide login screen
+    loginScreen.classList.add('hidden');
+
+    // Update navbar user info
+    const displayName = user.displayName || user.email?.split('@')[0] || 'ผู้ใช้';
+    document.getElementById('navUserName').textContent = displayName;
+    document.getElementById('dropdownUserName').textContent = displayName;
+    document.getElementById('dropdownUserEmail').textContent = user.email || '';
+
+    if (user.photoURL) {
+      document.getElementById('navAvatar').src = user.photoURL;
+      document.getElementById('navAvatar').style.display = '';
+      document.getElementById('navAvatarPlaceholder').style.display = 'none';
+    } else {
+      document.getElementById('navAvatarPlaceholder').textContent = displayName[0].toUpperCase();
+    }
+
+    // Load data for this user
+    await loadState();
+    renderPubTabs();
+    renderGrid();
+
+  } else {
+    // Show login screen
+    loginScreen.classList.remove('hidden');
+    // Reset state
+    state.owned = {};
+    state.want = {};
+    renderGrid();
+  }
+});
 
 // ใช้ Firebase (ไม่ต้องรัน python scraper.py แล้ว)
 const DB_KEY   = 'bookshelf_v1';
@@ -1151,162 +1460,89 @@ let state = {
 
 // ══ LOAD ══
 async function loadState() {
-  console.log('[loadState] Starting...');
-  console.log('[loadState] Firebase initialized:', typeof firebase !== 'undefined');
-  console.log('[loadState] firebaseDB:', typeof firebaseDB !== 'undefined');
+  if (!currentUser) return;
+  console.log('[loadState] Starting for user:', currentUser.uid);
 
   try {
-    // โหลด books จาก Firebase
-    console.log('[loadState] Fetching books from Firebase...');
+    // โหลด books จาก Firebase (shared path - ทุกคนใช้ร่วมกัน)
     const booksSnap = await firebaseDB.ref('books').once('value');
     const booksData = booksSnap.val();
-    
-    console.log('[loadState] Books snapshot exists:', booksSnap.exists());
-    console.log('[loadState] Books data type:', typeof booksData);
-    console.log('[loadState] Books data:', booksData ? 'found' : 'null');
-    
+
     if (booksData && Array.isArray(booksData)) {
       state.books = booksData;
-      console.log(`✅ Firebase: ${state.books.length} books`);
     } else if (booksData && typeof booksData === 'object') {
       state.books = Object.values(booksData);
-      console.log(`✅ Firebase (object): ${state.books.length} books`);
     } else {
       state.books = [];
-      console.warn('⚠️ No books in Firebase');
-      console.log('[loadState] Trying localStorage fallback...');
-      
       // Fallback to localStorage
       const localBooks = localStorage.getItem(DB_KEY);
-      if (localBooks) {
-        state.books = JSON.parse(localBooks);
-        console.log(`✅ localStorage: ${state.books.length} books`);
-      }
+      if (localBooks) state.books = JSON.parse(localBooks);
     }
-    
-    // โหลด owned/want จาก Firebase
-    console.log('[loadState] Fetching owned/want from Firebase...');
-    const ownedSnap = await firebaseDB.ref('owned').once('value');
-    const wantSnap = await firebaseDB.ref('want').once('value');
-    
+
+    // โหลด owned/want จาก path ของ user คนนี้เท่านั้น
+    const ownedSnap = await userRef('owned').once('value');
+    const wantSnap  = await userRef('want').once('value');
+
     const ownedData = ownedSnap.val() || {};
-    const wantData = wantSnap.val() || {};
-    
-    console.log('[loadState] Raw owned data:', ownedData);
-    console.log('[loadState] Raw want data:', wantData);
-    
-    // deserialize Base64 encoded keys (ใช้ atob แปลงกลับ)
+    const wantData  = wantSnap.val()  || {};
+
+    // deserialize Base64 encoded keys
     state.owned = {};
-    state.want = {};
-    
+    state.want  = {};
+
     Object.keys(ownedData).forEach(encodedKey => {
-      // แปลง Base64 กลับเป็น URL เดิม
-      try {
-        const originalKey = atob(encodedKey);
-        state.owned[originalKey] = ownedData[encodedKey];
-      } catch(e) {
-        console.warn('[loadState] Failed to decode key:', encodedKey, e.message);
-        state.owned[encodedKey] = ownedData[encodedKey];
-      }
+      try { state.owned[atob(encodedKey)] = ownedData[encodedKey]; }
+      catch(e) { state.owned[encodedKey] = ownedData[encodedKey]; }
     });
-    
+
     Object.keys(wantData).forEach(encodedKey => {
-      // แปลง Base64 กลับเป็น URL เดิม
-      try {
-        const originalKey = atob(encodedKey);
-        state.want[originalKey] = wantData[encodedKey];
-      } catch(e) {
-        console.warn('[loadState] Failed to decode key:', encodedKey, e.message);
-        state.want[encodedKey] = wantData[encodedKey];
-      }
+      try { state.want[atob(encodedKey)] = wantData[encodedKey]; }
+      catch(e) { state.want[encodedKey] = wantData[encodedKey]; }
     });
-    
-    console.log(`✅ Owned: ${Object.keys(state.owned).length} items`);
-    console.log(`✅ Want: ${Object.keys(state.want).length} items`);
-    
-    // Debug: แสดงตัวอย่าง keys
-    if (Object.keys(state.owned).length > 0) {
-      console.log('Owned sample keys:', Object.keys(state.owned).slice(0, 3));
-    }
-    if (Object.keys(state.want).length > 0) {
-      console.log('Want sample keys:', Object.keys(state.want).slice(0, 3));
-    }
-    
+
+    console.log(`✅ Books: ${state.books.length}, Owned: ${Object.keys(state.owned).length}, Want: ${Object.keys(state.want).length}`);
+
   } catch(e) {
     console.error('[loadState] Error:', e.message);
-    console.error('[loadState] Stack:', e.stack);
     state.books = [];
     state.owned = {};
-    state.want = {};
-    
-    // Fallback to localStorage
-    console.log('[loadState] Trying localStorage fallback...');
+    state.want  = {};
     try {
       const localBooks = localStorage.getItem(DB_KEY);
-      const localOwned = localStorage.getItem(OWN_KEY);
-      const localWant = localStorage.getItem(WANT_KEY);
-      
       if (localBooks) state.books = JSON.parse(localBooks);
-      if (localOwned) state.owned = JSON.parse(localOwned);
-      if (localWant) state.want = JSON.parse(localWant);
-      
-      console.log(`✅ localStorage fallback: ${state.books.length} books`);
-    } catch(e2) {
-      console.error('[loadState] localStorage fallback failed:', e2.message);
-    }
+    } catch(e2) {}
   }
-  
-  console.log('[loadState] Done, total books:', state.books.length);
-  console.log('[loadState] Calling renderPubTabs and renderGrid...');
-  renderPubTabs();
-  renderGrid();
-  console.log('[loadState] Complete!');
 }
 
 async function saveState() {
-  if (typeof state === 'undefined') {
-    console.warn('[saveState] state not initialized yet');
-    return;
-  }
-  
-  // ป้องกันการเขียนข้อมูลว่างทับ
+  if (!currentUser) { console.warn('[saveState] Not authenticated'); return; }
   if (!state.books || state.books.length === 0) {
     console.warn('[saveState] Not saving empty books array!');
     return;
   }
-  
+
   try {
-    // Encode URL ด้วย btoa (Base64) - Firebase รับรองว่าโอเค
     const sanitizeKey = (key) => btoa(key);
     const sanitizedOwned = {};
-    const sanitizedWant = {};
-    
-    Object.keys(state.owned).forEach(key => {
-      sanitizedOwned[sanitizeKey(key)] = state.owned[key];
-    });
-    
-    Object.keys(state.want).forEach(key => {
-      sanitizedWant[sanitizeKey(key)] = state.want[key];
-    });
-    
-    console.log('[saveState] Sanitized owned keys (first 3):', Object.keys(sanitizedOwned).slice(0, 3));
-    console.log('[saveState] Sanitized want keys (first 3):', Object.keys(sanitizedWant).slice(0, 3));
-    
-    // บันทึกขึ้น Firebase (await ให้เขียนเสร็จก่อน)
+    const sanitizedWant  = {};
+
+    Object.keys(state.owned).forEach(key => { sanitizedOwned[sanitizeKey(key)] = state.owned[key]; });
+    Object.keys(state.want).forEach(key  => { sanitizedWant[sanitizeKey(key)]  = state.want[key]; });
+
+    // books ยัง shared (เขียนที่ root)
+    // owned/want แยกตาม user
     await Promise.all([
       firebaseDB.ref('books').set(state.books),
-      firebaseDB.ref('owned').set(sanitizedOwned),
-      firebaseDB.ref('want').set(sanitizedWant)
+      userRef('owned').set(sanitizedOwned),
+      userRef('want').set(sanitizedWant),
     ]);
-    
-    // Backup ใน localStorage ด้วย (ใช้ key เดิม)
-    localStorage.setItem(DB_KEY, JSON.stringify(state.books));
-    localStorage.setItem(OWN_KEY, JSON.stringify(state.owned));
+
+    // Backup ใน localStorage
+    localStorage.setItem(DB_KEY,   JSON.stringify(state.books));
+    localStorage.setItem(OWN_KEY,  JSON.stringify(state.owned));
     localStorage.setItem(WANT_KEY, JSON.stringify(state.want));
-    
-    console.log('💾 Saved to Firebase & localStorage:', state.books.length, 'books');
-    console.log('Owned keys:', Object.keys(state.owned).length);
-    console.log('Want keys:', Object.keys(state.want).length);
+
+    console.log('💾 Saved:', state.books.length, 'books |', Object.keys(state.owned).length, 'owned |', Object.keys(state.want).length, 'want');
   } catch(e) {
     console.error('[saveState] Error:', e.message);
   }
@@ -1979,12 +2215,17 @@ async function scrapeNow() {
 }
 
 async function uploadToFirebase() {
+  if (!currentUser) return;
   console.log('📤 Uploading to Firebase...');
-  
   try {
     await firebaseDB.ref('books').set(state.books);
-    await firebaseDB.ref('owned').set(state.owned);
-    await firebaseDB.ref('want').set(state.want);
+    const sanitizeKey = (key) => btoa(key);
+    const sanitizedOwned = {};
+    const sanitizedWant  = {};
+    Object.keys(state.owned).forEach(k => { sanitizedOwned[sanitizeKey(k)] = state.owned[k]; });
+    Object.keys(state.want).forEach(k  => { sanitizedWant[sanitizeKey(k)]  = state.want[k]; });
+    await userRef('owned').set(sanitizedOwned);
+    await userRef('want').set(sanitizedWant);
     console.log('✅ Uploaded to Firebase');
   } catch(e) {
     console.error('Upload error:', e);
@@ -1992,30 +2233,32 @@ async function uploadToFirebase() {
 }
 
 async function refreshFromAPI() {
+  if (!currentUser) { showToast('⚠️', 'กรุณาเข้าสู่ระบบก่อน', ''); return; }
   showToast('⏳', 'กำลังโหลดข้อมูล…', '');
-  
+
   try {
-    // โหลดจาก Firebase
     const booksSnap = await firebaseDB.ref('books').once('value');
     const booksData = booksSnap.val();
-    
+
     if (booksData && Array.isArray(booksData)) {
       state.books = booksData;
     } else if (booksData && typeof booksData === 'object') {
       state.books = Object.values(booksData);
     }
-    
-    const ownedSnap = await firebaseDB.ref('owned').once('value');
-    const wantSnap = await firebaseDB.ref('want').once('value');
-    
-    state.owned = ownedSnap.val() || {};
-    state.want = wantSnap.val() || {};
-    
-    saveState();
+
+    const ownedSnap = await userRef('owned').once('value');
+    const wantSnap  = await userRef('want').once('value');
+    const ownedData = ownedSnap.val() || {};
+    const wantData  = wantSnap.val()  || {};
+
+    state.owned = {};
+    state.want  = {};
+    Object.keys(ownedData).forEach(k => { try { state.owned[atob(k)] = ownedData[k]; } catch(e) { state.owned[k] = ownedData[k]; } });
+    Object.keys(wantData).forEach(k  => { try { state.want[atob(k)]  = wantData[k];  } catch(e) { state.want[k]  = wantData[k]; } });
+
     renderPubTabs();
     renderGrid();
     showToast('✅', 'โหลดข้อมูลสำเร็จ', `${state.books.length} เล่ม`);
-    console.log('✅ Refreshed:', state.books.length, 'books');
   } catch(e) {
     console.error('Refresh error:', e);
     showToast('❌', 'ไม่สามารถโหลดได้', 'ตรวจสอบ Firebase');
@@ -2064,14 +2307,8 @@ function showToast(icon, text, sub) {
 }
 
 // ══════════════════════════════════════════════════
-// INIT
+// INIT — handled by firebaseAuth.onAuthStateChanged above
 // ══════════════════════════════════════════════════
-loadState().then(() => {
-  console.log('[INIT] State loaded:', state.books.length, 'books');
-  renderPubTabs();
-  renderGrid();
-  console.log('[INIT] Done');
-});
 </script>
 </body>
 </html>
