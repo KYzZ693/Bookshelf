@@ -1501,12 +1501,21 @@ async function loadState() {
     if (booksData && Array.isArray(booksData)) {
       state.books = booksData;
     } else if (booksData && typeof booksData === 'object') {
-      state.books = Object.values(booksData);
+      // Sort by padded numeric key ("000000", "000001", ...) to preserve original order
+      state.books = Object.keys(booksData)
+        .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+        .map(k => booksData[k]);
     } else {
       state.books = [];
       // Fallback to localStorage
       const localBooks = localStorage.getItem(DB_KEY);
       if (localBooks) state.books = JSON.parse(localBooks);
+    }
+
+    if (state.books) {
+      state.books.forEach(b => {
+        if (b.Title) b.Title = b.Title.replace(/^(?:\s*[\(\[].*?[\)\]])+\s*/g, '').trim();
+      });
     }
 
     // โหลด owned/want จาก path ของ user คนนี้เท่านั้น
@@ -2233,6 +2242,12 @@ async function scrapeNow() {
     if (data.books && data.books.length > 0) {
       state.books = data.books;
     }
+
+    if (state.books) {
+      state.books.forEach(b => {
+        if (b.Title) b.Title = b.Title.replace(/^(?:\s*[\(\[].*?[\)\]])+\s*/g, '').trim();
+      });
+    }
     
     // อัพโหลดขึ้น Firebase อัตโนมัติ
     await uploadToFirebase();
@@ -2280,6 +2295,12 @@ async function refreshFromAPI() {
       state.books = booksData;
     } else if (booksData && typeof booksData === 'object') {
       state.books = Object.values(booksData);
+    }
+
+    if (state.books) {
+      state.books.forEach(b => {
+        if (b.Title) b.Title = b.Title.replace(/^(?:\s*[\(\[].*?[\)\]])+\s*/g, '').trim();
+      });
     }
 
     const ownedSnap = await userRef('owned').once('value');
