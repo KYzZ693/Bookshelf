@@ -1161,6 +1161,26 @@ nav {
 .user-info-row { padding: 12px 16px 8px; border-bottom: 1px solid var(--border); }
 .user-info-email { font-size: 11.5px; color: var(--text-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .user-info-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+
+  /* ── SKELETON / VIRTUAL SCROLL ── */
+  .series-card-wrapper {
+    /* Set an explicit height to keep scrollbars accurate while unrendered */
+    min-height: 290px;
+    height: 100%;
+    /* Same border-radius as series-card */
+    border-radius: var(--radius);
+  }
+  .series-card-wrapper.skeleton {
+    background: linear-gradient(110deg, #ece9e6 8%, #f5f5f5 18%, #ece9e6 33%);
+    background-size: 200% 100%;
+    animation: 1.5s shine linear infinite;
+    pointer-events: none;
+    border: 1px solid var(--border);
+  }
+  @keyframes shine {
+    to { background-position-x: -200%; }
+  }
+
 </style>
 </head>
 <body>
@@ -1743,50 +1763,18 @@ function renderPubTabs() {
   strip.appendChild(add);
 }
 
+// ══════════════════════════════════════════════════
+// VIRTUAL SCROLL & RENDER
+// ══════════════════════════════════════════════════
+
+let gridObserver = null;
+
 function renderGrid() {
-  console.log('[renderGrid] Starting, filtered:', getFilteredBooks().length);
+  const grid = document.getElementById('bookGrid');
+  const empty = document.getElementById('emptyState');
   const filtered = getFilteredBooks();
-  const grid     = document.getElementById('bookGrid');
-  const empty    = document.getElementById('emptyState');
-
-  // update counts
-  const allB = state.publisher === 'all' ? state.books : state.books.filter(b => b.Publisher === state.publisher);
-  
-  // Desktop counts
-  const counts = [
-    { id: 'cnt-all', value: allB.length },
-    { id: 'cnt-LN', value: allB.filter(b => b.Type === 'LN').length },
-    { id: 'cnt-Novel', value: allB.filter(b => b.Type === 'Novel').length },
-    { id: 'cnt-Manga', value: allB.filter(b => b.Type === 'Manga').length },
-    { id: 'cnt-Artbook', value: allB.filter(b => b.Type === 'Artbook').length },
-    { id: 'cnt-owned', value: allB.filter(b => state.owned[b.Link]).length },
-    { id: 'cnt-want', value: allB.filter(b => state.want[b.Link]).length }
-  ];
-  
-  counts.forEach(({ id, value }) => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = value;
-  });
-  
-  // Mobile menu counts (prefix with m-)
-  counts.forEach(({ id, value }) => {
-    const mobileEl = document.getElementById('m-' + id);
-    if (mobileEl) mobileEl.textContent = value;
-  });
-
-  const total = allB.length;
-  const owned = allB.filter(b => state.owned[b.Link]).length;
-  const pct   = total ? Math.round(owned / total * 100) : 0;
-  document.getElementById('statOwned').textContent = owned;
-  document.getElementById('statTotal').textContent = total;
-  document.getElementById('statPct').textContent   = pct + '%';
-  document.getElementById('progressFill').style.width = pct + '%';
-
-  const typeNames = { all:'ทั้งหมด', LN:'Light Novel', Novel:'Novel', Manga:'Manga', Artbook:'Artbook', owned:'มีแล้ว', want:'อยากได้' };
-  document.getElementById('sectionLabel').textContent = typeNames[state.type] || 'ทั้งหมด';
 
   if (filtered.length === 0) {
-    console.log('[renderGrid] No books to display');
     grid.innerHTML = '';
     empty.style.display = 'block';
     return;
@@ -1795,71 +1783,98 @@ function renderGrid() {
 
   const groups = groupBySeries(filtered);
   console.log('[renderGrid] Groups:', groups.length);
+  window._groups = groups;
 
+  // Clear previous observer to prevent memory leak
+  if (gridObserver) {
+    gridObserver.disconnect();
+  }
+
+  // Generate skeleton wrappers instantly
   grid.innerHTML = groups.map((g, i) => {
-    const tot     = countTotal(g);
-    const own     = countOwned(g);
-    const pctG    = tot ? Math.round(own / tot * 100) : 0;
-    const allOwn  = own === tot && tot > 0;
-    const someOwn = own > 0 && own < tot;
-    const delay   = Math.min(i * 25, 400);
-
-    // ภาพปกจาก volume แรกที่มีรูป
-    const coverBook = g.volumes.find(b => b.Image) || Object.values(g.sets).find(b => b.Image);
-    const imgHtml = coverBook?.Image
-      ? `<img class="sc-img" src="${coverBook.Image}" alt="${g.name}" onerror="this.style.display='none'">`
-      : `<div class="sc-placeholder">${g.type === 'LN' ? '📖' : '📚'}</div>`;
-
-    // badges: set types + LN/Manga (ถ้าไม่มี set ใดเลย จึงแสดง type)
-    const setKeys = Object.keys(g.sets);
-    const SET_LABEL = {
-      complete:   { cls: 'set-complete',  label: 'Complete' },
-      special:    { cls: 'set-special',   label: 'Special'  },
-      ultimate:   { cls: 'set-ultimate',  label: 'Ultimate' },
-      boxset:     { cls: 'set-ultimate',  label: 'Box Set'  },
-      shortstory: { cls: 'set-complete',  label: 'Short Story' },
-    };
-    const setBadges = setKeys.map(k => {
-      const s = SET_LABEL[k] || { cls: 'set-complete', label: k };
-      return `<span class="set-pill ${s.cls}">${s.label}</span>`;
-    }).join('');
-
-    // type badge เล็กๆ มุมบนซ้ายของรูป (เอาไว้แค่ใน cover ไม่แสดงใน meta)
-    const typePillMap = {
-      'LN': { class: 'pill-ln', label: 'LN' },
-      'Novel': { class: 'pill-novel', label: 'N' },
-      'Manga': { class: 'pill-manga', label: 'MG' },
-      'Artbook': { class: 'pill-artbook', label: 'AB' }
-    };
-    const typePill = typePillMap[g.type] || { class: 'pill-ln', label: 'LN' };
-    const typePillClass = typePill.class;
-    const typePillLabel = typePill.label;
-
-    return `
-    <div class="series-card ${allOwn ? 'all-owned' : someOwn ? 'some-owned' : ''}"
-         style="animation-delay:${delay}ms"
-         onclick="openSeriesModal(${i})"
-         data-idx="${i}">
-      <div class="series-cover-stack">
-        ${imgHtml}
-        <div class="sc-type ${typePillClass}">${typePillLabel}</div>
-        <div class="sc-count">${tot} เล่ม</div>
-        ${allOwn ? `<div class="sc-owned-badge">✓ ครบ</div>` : ''}
-      </div>
-      <div class="series-meta">
-        <div class="series-title">${g.name}</div>
-        ${g.author ? `<div class="series-author">${g.author}</div>` : ''}
-        <div class="series-progress">
-          <div class="series-progress-fill" style="width:${pctG}%"></div>
-        </div>
-        <div class="series-progress-label">${own}/${tot} เล่ม${own > 0 ? ` (${pctG}%)` : ''}</div>
-        ${setBadges ? `<div class="series-sets">${setBadges}</div>` : ''}
-      </div>
-    </div>`;
+    return `<div class="series-card-wrapper skeleton" data-idx="${i}"></div>`;
   }).join('');
 
-  // store for modal access
-  window._groups = groups;
+  // Setting up the observer for virtual rendering
+  // rootMargin 5000px loads things significantly before they enter viewport
+  gridObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const idx = entry.target.dataset.idx;
+      if (entry.isIntersecting) {
+        // Load content
+        entry.target.classList.remove('skeleton');
+        entry.target.innerHTML = buildCardHtml(window._groups[idx], idx);
+      } else {
+        // Unload content
+        entry.target.innerHTML = '';
+        entry.target.classList.add('skeleton');
+      }
+    });
+  }, { rootMargin: '5000px' });
+
+  // Observe all wrappers
+  document.querySelectorAll('.series-card-wrapper').forEach(el => {
+    gridObserver.observe(el);
+  });
+}
+
+function buildCardHtml(g, i) {
+  const tot     = countTotal(g);
+  const own     = countOwned(g);
+  const pctG    = tot ? Math.round(own / tot * 100) : 0;
+  const allOwn  = own === tot && tot > 0;
+  const someOwn = own > 0 && own < tot;
+  const delay   = Math.min((i % 40) * 25, 400); // modulate delay for batching
+
+  const coverBook = g.volumes.find(b => b.Image) || Object.values(g.sets).find(b => b.Image);
+  const imgHtml = coverBook?.Image
+    ? `<img class="sc-img" src="${coverBook.Image}" alt="${g.name}" onerror="this.style.display='none'">`
+    : `<div class="sc-placeholder">${g.type === 'LN' ? '📖' : '📚'}</div>`;
+
+  const setKeys = Object.keys(g.sets);
+  const SET_LABEL = {
+    complete:   { cls: 'set-complete',  label: 'Complete' },
+    special:    { cls: 'set-special',   label: 'Special'  },
+    ultimate:   { cls: 'set-ultimate',  label: 'Ultimate' },
+    boxset:     { cls: 'set-ultimate',  label: 'Box Set'  },
+    shortstory: { cls: 'set-complete',  label: 'Short Story' },
+  };
+  const setBadges = setKeys.map(k => {
+    const s = SET_LABEL[k] || { cls: 'set-complete', label: k };
+    return `<span class="set-pill ${s.cls}">${s.label}</span>`;
+  }).join('');
+
+  const typePillMap = {
+    'LN': { class: 'pill-ln', label: 'LN' },
+    'Novel': { class: 'pill-novel', label: 'N' },
+    'Manga': { class: 'pill-manga', label: 'MG' },
+    'Artbook': { class: 'pill-artbook', label: 'AB' }
+  };
+  const typePill = typePillMap[g.type] || { class: 'pill-ln', label: 'LN' };
+  const typePillClass = typePill.class;
+  const typePillLabel = typePill.label;
+
+  return `
+  <div class="series-card ${allOwn ? 'all-owned' : someOwn ? 'some-owned' : ''}"
+       style="animation-delay:${delay}ms"
+       onclick="openSeriesModal(${i})"
+       data-idx="${i}">
+    <div class="series-cover-stack">
+      ${imgHtml}
+      <div class="sc-type ${typePillClass}">${typePillLabel}</div>
+      <div class="sc-count">${tot} เล่ม</div>
+      ${allOwn ? `<div class="sc-owned-badge">✓ ครบ</div>` : ''}
+    </div>
+    <div class="series-meta">
+      <div class="series-title">${g.name}</div>
+      ${g.author ? `<div class="series-author">${g.author}</div>` : ''}
+      <div class="series-progress">
+        <div class="series-progress-fill" style="width:${pctG}%"></div>
+      </div>
+      <div class="series-progress-label">${own}/${tot} เล่ม${own > 0 ? ` (${pctG}%)` : ''}</div>
+      ${setBadges ? `<div class="series-sets">${setBadges}</div>` : ''}
+    </div>
+  </div>`;
 }
 
 // ══════════════════════════════════════════════════
